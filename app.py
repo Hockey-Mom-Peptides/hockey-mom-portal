@@ -25,18 +25,21 @@ def load_catalog():
                     "t2_qty": int(row["Tier2Qty"]),
                     "t2_price": float(row["Tier2Price"]),
                     "t3_price": float(row["Tier3Price"]),
-                    "image": row.get("Image", "").strip()
+                    "image": row.get("Image", "").strip(),
+                    "visibility": row.get("Visibility", "public").strip().lower()
                 }
     return products
 
 def load_partner_codes():
-    codes = []
+    codes = {}
     if os.path.exists("partners.csv"):
         with open("partners.csv", mode="r", encoding="utf-8") as file:
             reader = csv.DictReader(file)
             for row in reader:
-                if row.get("Code", "").strip():
-                    codes.append(row["Code"].strip())
+                code = row.get("Code", "").strip()
+                access_type = row.get("AccessType", "wholesale").strip().lower()
+                if code:
+                    codes[code] = access_type
     return codes
 
 PRODUCTS = load_catalog()
@@ -130,18 +133,24 @@ with logo_col2:
 
 st.markdown("<p class='contact-sub'>Power Play Peptides & Supporting Products<br>hockeymompeptides@gmail.com</p>", unsafe_allow_html=True)
 
-# --- FOOLPROOF PARTNER ACCESS BAR (Main Screen) ---
+# --- SPECIAL ACCESS BAR (Main Screen) ---
 with st.container(border=True):
     access_col1, access_col2 = st.columns([1, 2])
     with access_col1:
-        st.markdown("#### 🔒 Reseller Access")
-        st.caption("Enter partner code for wholesale pricing.")
+        st.markdown("#### 🔑 Special Access")
+        st.caption("Enter code for wholesale pricing or exclusive items.")
     with access_col2:
-        user_code = st.text_input("Partner Code:", type="password", label_visibility="collapsed", placeholder="Enter partner code here...")
+        user_code = st.text_input("Special Code:", type="password", label_visibility="collapsed", placeholder="Enter access code here...")
 
-is_wholesale = (user_code in VALID_CODES)
-if is_wholesale:
-    st.success("✓ Wholesale Tier Unlocked Successfully")
+# Evaluate access permissions
+access_type = VALID_CODES.get(user_code, None)
+is_wholesale = (access_type in ["wholesale", "hidden_access"])
+has_hidden_catalog = (access_type == "hidden_access")
+
+if access_type == "wholesale":
+    st.success("✓ Wholesale Pricing Unlocked")
+elif access_type == "hidden_access":
+    st.success("✓ Special Access Unlocked (Wholesale Pricing + Exclusive Products)")
 
 st.divider()
 
@@ -149,7 +158,17 @@ if not PRODUCTS:
     st.error("⚠️ pricing.csv file not found! Please create it in the same folder to load your products.")
     st.stop()
 if not VALID_CODES:
-    st.warning("⚠️ partners.csv file not found or empty. Wholesale access is currently disabled.")
+    st.warning("⚠️ partners.csv file not found or empty. Access codes are currently disabled.")
+
+# Filter available products based on visibility
+available_products = {
+    code: data for code, data in PRODUCTS.items() 
+    if data["visibility"] == "public" or (data["visibility"] == "hidden" and has_hidden_catalog)
+}
+
+if not available_products:
+    st.error("⚠️ No products available to display.")
+    st.stop()
 
 # --- TWO-COLUMN LAYOUT: ADD ITEMS vs CURRENT ORDER ---
 col_add, col_cart = st.columns([1.2, 1], gap="large")
@@ -157,11 +176,11 @@ col_add, col_cart = st.columns([1.2, 1], gap="large")
 with col_add:
     st.markdown("### 1. Select Products")
     
-    product_options = [f"{code} - {data['name']}" for code, data in PRODUCTS.items()]
+    product_options = [f"{code} - {data['name']}" for code, data in available_products.items()]
     selected_item = st.selectbox("Product", product_options, label_visibility="collapsed")
     
     product_code = selected_item.split(" - ")[0]
-    product_details = PRODUCTS[product_code]
+    product_details = available_products[product_code]
     
     img_target = product_details.get("image", "")
     if img_target:
@@ -202,6 +221,12 @@ with col_add:
 with col_cart:
     st.markdown("### 2. Current Order & Shipping")
     
+    # Clean up cart if items were in cart from a hidden product and code was removed
+    cart_keys = list(st.session_state.cart.keys())
+    for code in cart_keys:
+        if code not in available_products:
+            del st.session_state.cart[code]
+
     if not st.session_state.cart:
         st.info("Your cart is empty.")
         st.session_state.order_ready = False
@@ -269,7 +294,7 @@ Shipping Address:
 ORDER SUMMARY:
 {fd['summary']}
 TOTAL DUE: {fd['total']}
-Pricing Tier: {'Wholesale' if is_wholesale else 'Retail'}
+Pricing Tier: {'Wholesale / Special Access' if is_wholesale else 'Retail'}
 
 I am sending payment via Cash App / Venmo shortly.
 """
