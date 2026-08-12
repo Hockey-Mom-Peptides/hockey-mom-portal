@@ -63,36 +63,57 @@ if 'form_data' not in st.session_state:
 if 'verified_21' not in st.session_state:
     st.session_state.verified_21 = False
 
-# --- 3. PAGE CONFIGURATION & LUXURY UI CSS ---
+# --- 3. PAGE CONFIGURATION & ELITE UI CSS ---
 st.set_page_config(page_title="Spicy Hockey Mom's Peptide Group", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     
     html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #f8fafc;
     }
     
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    .block-container { padding-top: 2rem; padding-bottom: 3rem; max-width: 800px; }
+    .block-container { padding-top: 2rem; padding-bottom: 4rem; max-width: 860px; }
     
-    /* Smooth Entrance Animation for Logo */
-    @keyframes fadeInSlide {
-        0% { opacity: 0; transform: translateY(-15px); }
+    /* Smooth Entrance Animation */
+    @keyframes eliteFadeIn {
+        0% { opacity: 0; transform: translateY(12px); }
         100% { opacity: 1; transform: translateY(0); }
     }
     
     .animated-header {
-        animation: fadeInSlide 0.8s ease-out forwards;
+        animation: eliteFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
-    h1, h2, h3, span, p { color: #11264b; }
+    h1, h2, h3, span, p { color: #0f172a; }
     
-    /* Modern Polished Buttons */
+    /* Elite Hero Banner */
+    .hero-banner {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #ffffff;
+        padding: 1.5rem;
+        border-radius: 14px;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+    }
+    .hero-banner p { color: #94a3b8; font-size: 0.95rem; margin: 0; font-weight: 500; letter-spacing: 0.5px; }
+    .hero-banner h4 { color: #ffffff; margin: 0 0 5px 0; font-weight: 700; letter-spacing: 0.2px; }
+
+    /* Custom Input and Select Fields */
+    .stTextInput>div>div>input, .stSelectbox>div>div>div {
+        border-radius: 10px !important;
+        border: 1px solid #cbd5e1 !important;
+        background-color: #ffffff !important;
+    }
+    
+    /* High-End Polished Buttons */
     .stButton>button p, .stButton>button div {
         color: #FFFFFF !important;
         font-weight: 600 !important;
@@ -100,54 +121,51 @@ st.markdown("""
     }
     
     .stButton>button {
-        background-color: #11264b;
-        border-radius: 8px;
+        background-color: #0f172a;
+        border-radius: 10px;
         border: none;
-        padding: 0.6rem 1rem;
-        box-shadow: 0 4px 6px rgba(17, 38, 75, 0.12);
-        transition: all 0.25s ease-in-out;
+        padding: 0.65rem 1.2rem;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .stButton>button:hover {
-        background-color: #c91a25;
-        box-shadow: 0 6px 12px rgba(201, 26, 37, 0.25);
-        transform: translateY(-1px);
+        background-color: #dc2626;
+        box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
+        transform: translateY(-2px);
     }
     
-    /* Polished Metric Cards */
+    /* Refined Metric Cards */
     div[data-testid="metric-container"] {
-        background: linear-gradient(135deg, #f0f7fb 0%, #e2eff5 100%);
-        border: 1px solid #cbdde6;
-        padding: 1.2rem;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        padding: 1.25rem;
         border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(17, 38, 75, 0.05);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
     }
-    div[data-testid="metric-container"] > div { color: #c91a25 !important; }
+    div[data-testid="metric-container"] > div { color: #dc2626 !important; }
     
-    .center-text { text-align: center; }
-    .contact-sub { text-align: center; color: #526581; font-size: 0.95rem; margin-top: -5px; margin-bottom: 25px; font-weight: 500;}
-    
-    .receipt-row { display: flex; justify-content: space-between; border-bottom: 1px solid #edf2f7; padding: 10px 0; font-size: 0.95rem; }
-    .receipt-total { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.25rem; padding-top: 15px; color: #c91a25;}
+    .receipt-row { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 12px 0; font-size: 0.95rem; }
+    .receipt-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.25rem; padding-top: 18px; color: #dc2626;}
     
     .payment-box {
-        background-color: #fcfdfd;
-        border: 2px solid #c91a25;
+        background-color: #ffffff;
+        border: 2px solid #dc2626;
         padding: 24px;
-        border-radius: 12px;
+        border-radius: 14px;
         margin-top: 20px;
-        box-shadow: 0 8px 24px rgba(201, 26, 37, 0.08);
+        box-shadow: 0 10px 30px rgba(220, 38, 38, 0.08);
     }
     
-    /* Age Verification Gate Card */
+    /* Luxury Age Verification Gate */
     .age-gate-container {
         background: #ffffff;
-        padding: 40px;
-        border-radius: 16px;
+        padding: 45px;
+        border-radius: 20px;
         border: 1px solid #e2e8f0;
-        box-shadow: 0 12px 32px rgba(17, 38, 75, 0.12);
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
         text-align: center;
         max-width: 500px;
-        margin: 80px auto;
+        margin: 70px auto;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -155,11 +173,11 @@ st.markdown("""
 # --- 4. AGE VERIFICATION GATE (21+) ---
 if not st.session_state.verified_21:
     st.markdown("<div class='age-gate-container'>", unsafe_allow_html=True)
-    if os.path.exists("logo.png"): st.image("logo.png", width=140)
-    elif os.path.exists("logo.jpg"): st.image("logo.jpg", width=140)
+    if os.path.exists("logo.png"): st.image("logo.png", width=150)
+    elif os.path.exists("logo.jpg"): st.image("logo.jpg", width=150)
     
-    st.markdown("<h2 style='color: #11264b; margin-top: 20px;'>Age Verification Required</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #526581; margin-bottom: 30px;'>You must be at least 21 years of age to enter Spicy Hockey Mom's Peptide Group portal.</p>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color: #0f172a; margin-top: 20px; font-weight: 800;'>Age Verification</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #64748b; margin-bottom: 30px; line-height: 1.5;'>You must be at least 21 years of age to enter Spicy Hockey Mom's Peptide Group portal.</p>", unsafe_allow_html=True)
     
     col_yes, col_no = st.columns(2)
     with col_yes:
@@ -167,21 +185,27 @@ if not st.session_state.verified_21:
             st.session_state.verified_21 = True
             st.rerun()
     with col_no:
-        if st.button("Exit / Under 21", use_container_width=True):
+        if st.button("Exit Portal", use_container_width=True):
             st.warning("Access restricted to individuals 21 years of age or older.")
             st.stop()
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
-# --- 5. MAIN STOREFRONT (Loaded after Age Verification) ---
+# --- 5. MAIN STOREFRONT ---
 st.markdown("<div class='animated-header'>", unsafe_allow_html=True)
+
 logo_col1, logo_col2, logo_col3 = st.columns([1, 2, 1])
 with logo_col2:
     if os.path.exists("logo.png"): st.image("logo.png", use_container_width=True)
     elif os.path.exists("logo.jpg"): st.image("logo.jpg", use_container_width=True)
-    else: st.markdown("<h2 class='center-text'>SPICY HOCKEY MOM'S PEPTIDE GROUP</h2>", unsafe_allow_html=True)
+    else: st.markdown("<h2 style='text-align: center; font-weight: 800;'>SPICY HOCKEY MOM'S PEPTIDE GROUP</h2>", unsafe_allow_html=True)
 
-st.markdown("<p class='contact-sub'>Power Play Peptides & Supporting Products<br>hockeymompeptides@gmail.com</p>", unsafe_allow_html=True)
+st.markdown("""
+<div class="hero-banner">
+    <h4>POWER PLAY PEPTIDES & SUPPORTING PRODUCTS</h4>
+    <p>Secure Client Portal • hockeymompeptides@gmail.com</p>
+</div>
+""", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
 # --- SPECIAL ACCESS BAR ---
@@ -201,7 +225,7 @@ has_hidden_catalog = (access_type == "hidden_access")
 if is_wholesale:
     st.success("✓ Wholesale Pricing Unlocked")
 elif has_hidden_catalog:
-    st.success("✓ Special Access Unlocked (Exclusive Products Added - Retail Pricing Applies)")
+    st.success("✓ Special Access Unlocked (Exclusive Products Added)")
 
 st.divider()
 
@@ -270,7 +294,8 @@ with col_add:
         st.rerun()
 
 with col_cart:
-    st.markdown("### 2. Current Order & Shipping")
+    total_items_in_cart = sum(st.session_state.cart.values())
+    st.markdown(f"### 2. Current Order & Shipping ({total_items_in_cart})")
     
     # Clean up cart if items were in cart from a hidden product and code was removed
     cart_keys = list(st.session_state.cart.keys())
@@ -355,7 +380,7 @@ I am sending payment via Cash App / Venmo shortly.
             
             st.markdown(f"""
             <div class="payment-box">
-                <h3 style="margin-top:0; color:#c91a25;">Step 2: Send Order & Payment</h3>
+                <h3 style="margin-top:0; color:#dc2626;">Step 2: Send Order & Payment</h3>
                 <p>1. Click the button below to email your packing receipt to the shop:</p>
             </div>
             """, unsafe_allow_html=True)
