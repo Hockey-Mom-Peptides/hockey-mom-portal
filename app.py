@@ -207,7 +207,6 @@ if not st.session_state.verified_21:
 # --- 5. MAIN STOREFRONT ---
 st.markdown("<div class='animated-header'>", unsafe_allow_html=True)
 
-# Full-width logo display spanning the entire container width
 if os.path.exists("logo.png"): 
     st.image("logo.png", use_container_width=True)
 elif os.path.exists("logo.jpg"): 
@@ -223,16 +222,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# --- SPECIAL ACCESS BAR ---
+# --- SPECIAL ACCESS BAR (Visible Text Input) ---
 with st.container(border=True):
     access_col1, access_col2 = st.columns([1, 2])
     with access_col1:
         st.markdown("#### 🔑 Special Access")
         st.caption("Enter code for wholesale pricing or exclusive items.")
     with access_col2:
-        user_code = st.text_input("Special Code:", type="password", label_visibility="collapsed", placeholder="Enter access code here...")
+        # Changed from type="password" to standard text so typing is fully visible
+        user_code = st.text_input("Special Code:", label_visibility="collapsed", placeholder="Enter access code here...")
 
-# Evaluate access permissions strictly
 access_type = VALID_CODES.get(user_code, None)
 is_wholesale = (access_type == "wholesale")
 has_hidden_catalog = (access_type == "hidden_access")
@@ -250,7 +249,6 @@ if not PRODUCTS:
 if not VALID_CODES:
     st.warning("⚠️ partners.csv file not found or empty. Access codes are currently disabled.")
 
-# Filter available products based on visibility
 available_products = {
     code: data for code, data in PRODUCTS.items() 
     if data["visibility"] == "public" or (data["visibility"] == "hidden" and has_hidden_catalog)
@@ -312,7 +310,6 @@ with col_cart:
     total_items_in_cart = sum(st.session_state.cart.values())
     st.markdown(f"### 2. Current Order & Shipping ({total_items_in_cart})")
     
-    # Clean up cart if items were in cart from a hidden product and code was removed
     cart_keys = list(st.session_state.cart.keys())
     for code in cart_keys:
         if code not in available_products:
@@ -340,7 +337,6 @@ with col_cart:
         st.markdown(f"<div class='receipt-total'><span>TOTAL DUE:</span><span>${grand_total:,.2f}</span></div>", unsafe_allow_html=True)
         st.write("")
         
-        # --- SHIPPING & CONTACT FORM ---
         if not st.session_state.order_ready:
             st.markdown("#### Enter Shipping Information")
             with st.form("shipping_form"):
@@ -366,7 +362,6 @@ with col_cart:
                         }
                         st.rerun()
 
-        # --- PAYMENT INSTRUCTIONS & EMAIL LINK ---
         if st.session_state.order_ready:
             fd = st.session_state.form_data
             
@@ -415,7 +410,6 @@ I am sending payment via Cash App / Venmo shortly.
             
         st.write("")
         
-        # --- DYNAMIC BUTTON TEXT & ACTION ---
         button_label = "💳 Payment Sent - Finish Order" if st.session_state.order_ready else "🗑️ Clear Order"
         
         if st.button(button_label, use_container_width=True):
