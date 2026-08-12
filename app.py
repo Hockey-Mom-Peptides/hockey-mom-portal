@@ -142,15 +142,15 @@ with st.container(border=True):
     with access_col2:
         user_code = st.text_input("Special Code:", type="password", label_visibility="collapsed", placeholder="Enter access code here...")
 
-# Evaluate access permissions
+# Evaluate access permissions strictly
 access_type = VALID_CODES.get(user_code, None)
-is_wholesale = (access_type in ["wholesale", "hidden_access"])
+is_wholesale = (access_type == "wholesale")
 has_hidden_catalog = (access_type == "hidden_access")
 
-if access_type == "wholesale":
+if is_wholesale:
     st.success("✓ Wholesale Pricing Unlocked")
-elif access_type == "hidden_access":
-    st.success("✓ Special Access Unlocked (Wholesale Pricing + Exclusive Products)")
+elif has_hidden_catalog:
+    st.success("✓ Special Access Unlocked (Exclusive Products Added - Retail Pricing Applies)")
 
 st.divider()
 
@@ -294,7 +294,7 @@ Shipping Address:
 ORDER SUMMARY:
 {fd['summary']}
 TOTAL DUE: {fd['total']}
-Pricing Tier: {'Wholesale / Special Access' if is_wholesale else 'Retail'}
+Pricing Tier: {'Wholesale' if is_wholesale else 'Retail / Special Access'}
 
 I am sending payment via Cash App / Venmo shortly.
 """
