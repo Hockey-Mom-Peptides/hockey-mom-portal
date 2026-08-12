@@ -59,7 +59,7 @@ if 'form_data' not in st.session_state:
     st.session_state.form_data = {}
 
 # --- 3. PAGE CONFIGURATION & CUSTOM CSS ---
-st.set_page_config(page_title="Spicy Hockey Mom's Peptide Group", layout="centered", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Spicy Hockey Mom's Peptide Group", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
 <style>
@@ -129,6 +129,20 @@ with logo_col2:
     else: st.markdown("<h2 class='center-text'>SPICY HOCKEY MOM'S PEPTIDE GROUP</h2>", unsafe_allow_html=True)
 
 st.markdown("<p class='contact-sub'>Power Play Peptides & Supporting Products<br>hockeymompeptides@gmail.com</p>", unsafe_allow_html=True)
+
+# --- FOOLPROOF PARTNER ACCESS BAR (Main Screen) ---
+with st.container(border=True):
+    access_col1, access_col2 = st.columns([1, 2])
+    with access_col1:
+        st.markdown("#### 🔒 Reseller Access")
+        st.caption("Enter partner code for wholesale pricing.")
+    with access_col2:
+        user_code = st.text_input("Partner Code:", type="password", label_visibility="collapsed", placeholder="Enter partner code here...")
+
+is_wholesale = (user_code in VALID_CODES)
+if is_wholesale:
+    st.success("✓ Wholesale Tier Unlocked Successfully")
+
 st.divider()
 
 if not PRODUCTS:
@@ -136,17 +150,6 @@ if not PRODUCTS:
     st.stop()
 if not VALID_CODES:
     st.warning("⚠️ partners.csv file not found or empty. Wholesale access is currently disabled.")
-
-# --- Partner Authentication (Sidebar) ---
-with st.sidebar:
-    st.markdown("### 🔒 Reseller Access")
-    user_code = st.text_input("Partner Code:", type="password")
-    is_wholesale = (user_code in VALID_CODES)
-    
-    if is_wholesale:
-        st.success("✓ Wholesale Tier Unlocked")
-    else:
-        st.info("Displaying Standard Retail Pricing")
 
 # --- TWO-COLUMN LAYOUT: ADD ITEMS vs CURRENT ORDER ---
 col_add, col_cart = st.columns([1.2, 1], gap="large")
