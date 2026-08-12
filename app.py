@@ -53,78 +53,128 @@ def get_wholesale_unit_price(product_code, qty):
     elif qty <= p["t2_qty"]: return p["t2_price"]
     else: return p["t3_price"]
 
-# --- INITIALIZE SHOPPING CART MEMORY ---
+# --- INITIALIZE SESSION STATE MEMORY ---
 if 'cart' not in st.session_state:
     st.session_state.cart = {}
 if 'order_ready' not in st.session_state:
     st.session_state.order_ready = False
 if 'form_data' not in st.session_state:
     st.session_state.form_data = {}
+if 'verified_21' not in st.session_state:
+    st.session_state.verified_21 = False
 
-# --- 3. PAGE CONFIGURATION & CUSTOM CSS ---
+# --- 3. PAGE CONFIGURATION & LUXURY UI CSS ---
 st.set_page_config(page_title="Spicy Hockey Mom's Peptide Group", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+    
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    .block-container { padding-top: 2rem; padding-bottom: 2rem; }
+    .block-container { padding-top: 2rem; padding-bottom: 3rem; max-width: 800px; }
+    
+    /* Smooth Entrance Animation for Logo */
+    @keyframes fadeInSlide {
+        0% { opacity: 0; transform: translateY(-15px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animated-header {
+        animation: fadeInSlide 0.8s ease-out forwards;
+    }
     
     h1, h2, h3, span, p { color: #11264b; }
     
+    /* Modern Polished Buttons */
     .stButton>button p, .stButton>button div {
         color: #FFFFFF !important;
-        font-weight: bold !important;
-        font-size: 1.1rem !important;
-    }
-    
-    .checkout-btn>button {
-        background-color: #c91a25 !important;
-        border-radius: 6px;
-        padding: 0.8rem;
-        border: 2px solid #c91a25 !important;
-        width: 100%;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
     }
     
     .stButton>button {
         background-color: #11264b;
-        border-radius: 6px;
-        border: 2px solid #11264b;
-        transition: all 0.2s ease-in-out;
+        border-radius: 8px;
+        border: none;
+        padding: 0.6rem 1rem;
+        box-shadow: 0 4px 6px rgba(17, 38, 75, 0.12);
+        transition: all 0.25s ease-in-out;
     }
     .stButton>button:hover {
         background-color: #c91a25;
-        border: 2px solid #c91a25;
+        box-shadow: 0 6px 12px rgba(201, 26, 37, 0.25);
+        transform: translateY(-1px);
     }
     
+    /* Polished Metric Cards */
     div[data-testid="metric-container"] {
-        background-color: #d8ebf3;
-        border: 2px solid #11264b;
-        padding: 1rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(17, 38, 75, 0.1);
+        background: linear-gradient(135deg, #f0f7fb 0%, #e2eff5 100%);
+        border: 1px solid #cbdde6;
+        padding: 1.2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(17, 38, 75, 0.05);
     }
     div[data-testid="metric-container"] > div { color: #c91a25 !important; }
     
     .center-text { text-align: center; }
-    .contact-sub { text-align: center; color: #11264b; font-size: 1rem; margin-top: -10px; margin-bottom: 25px; font-weight: 500;}
+    .contact-sub { text-align: center; color: #526581; font-size: 0.95rem; margin-top: -5px; margin-bottom: 25px; font-weight: 500;}
     
-    .receipt-row { display: flex; justify-content: space-between; border-bottom: 1px solid #d8ebf3; padding: 8px 0; }
-    .receipt-total { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem; padding-top: 15px; color: #c91a25;}
+    .receipt-row { display: flex; justify-content: space-between; border-bottom: 1px solid #edf2f7; padding: 10px 0; font-size: 0.95rem; }
+    .receipt-total { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.25rem; padding-top: 15px; color: #c91a25;}
     
     .payment-box {
-        background-color: #f8fafc;
+        background-color: #fcfdfd;
         border: 2px solid #c91a25;
-        padding: 20px;
-        border-radius: 10px;
+        padding: 24px;
+        border-radius: 12px;
         margin-top: 20px;
+        box-shadow: 0 8px 24px rgba(201, 26, 37, 0.08);
+    }
+    
+    /* Age Verification Gate Card */
+    .age-gate-container {
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 12px 32px rgba(17, 38, 75, 0.12);
+        text-align: center;
+        max-width: 500px;
+        margin: 80px auto;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- Header & Branding ---
+# --- 4. AGE VERIFICATION GATE (21+) ---
+if not st.session_state.verified_21:
+    st.markdown("<div class='age-gate-container'>", unsafe_allow_html=True)
+    if os.path.exists("logo.png"): st.image("logo.png", width=140)
+    elif os.path.exists("logo.jpg"): st.image("logo.jpg", width=140)
+    
+    st.markdown("<h2 style='color: #11264b; margin-top: 20px;'>Age Verification Required</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #526581; margin-bottom: 30px;'>You must be at least 21 years of age to enter Spicy Hockey Mom's Peptide Group portal.</p>", unsafe_allow_html=True)
+    
+    col_yes, col_no = st.columns(2)
+    with col_yes:
+        if st.button("I am 21 or Older", use_container_width=True):
+            st.session_state.verified_21 = True
+            st.rerun()
+    with col_no:
+        if st.button("Exit / Under 21", use_container_width=True):
+            st.warning("Access restricted to individuals 21 years of age or older.")
+            st.stop()
+    st.markdown("</div>", unsafe_allow_html=True)
+    st.stop()
+
+# --- 5. MAIN STOREFRONT (Loaded after Age Verification) ---
+st.markdown("<div class='animated-header'>", unsafe_allow_html=True)
 logo_col1, logo_col2, logo_col3 = st.columns([1, 2, 1])
 with logo_col2:
     if os.path.exists("logo.png"): st.image("logo.png", use_container_width=True)
@@ -132,8 +182,9 @@ with logo_col2:
     else: st.markdown("<h2 class='center-text'>SPICY HOCKEY MOM'S PEPTIDE GROUP</h2>", unsafe_allow_html=True)
 
 st.markdown("<p class='contact-sub'>Power Play Peptides & Supporting Products<br>hockeymompeptides@gmail.com</p>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
-# --- SPECIAL ACCESS BAR (Main Screen) ---
+# --- SPECIAL ACCESS BAR ---
 with st.container(border=True):
     access_col1, access_col2 = st.columns([1, 2])
     with access_col1:
