@@ -93,10 +93,9 @@ st.markdown("""
     
     h1, h2, h3, span, p { color: #0f172a; }
     
-    /* Elite Hero Banner - Fixed Readability */
+    /* Elite Hero Banner - Explicit High-Contrast Text Styling */
     .hero-banner {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        color: #ffffff !important;
         padding: 1.5rem;
         border-radius: 14px;
         text-align: center;
@@ -104,8 +103,20 @@ st.markdown("""
         margin-bottom: 2rem;
         box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
     }
-    .hero-banner p { color: #cbd5e1 !important; font-size: 0.95rem; margin: 0; font-weight: 500; letter-spacing: 0.5px; }
-    .hero-banner h4 { color: #ffffff !important; margin: 0 0 5px 0; font-weight: 700; letter-spacing: 0.2px; }
+    .hero-banner h4 {
+        color: #ffffff !important;
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+        margin: 0 0 8px 0 !important;
+        letter-spacing: 0.5px !important;
+    }
+    .hero-banner p {
+        color: #38bdf8 !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        margin: 0 !important;
+        letter-spacing: 0.3px !important;
+    }
 
     /* Custom Input and Select Fields */
     .stTextInput>div>div>input, .stSelectbox>div>div>div {
@@ -206,7 +217,7 @@ else:
 st.markdown("""
 <div class="hero-banner">
     <h4>POWER PLAY PEPTIDES & SUPPORTING PRODUCTS</h4>
-    <p>Secure Client Portal • hockeymompeptides@gmail.com</p>
+    <p>Secure Client Portal &nbsp;•&nbsp; hockeymompeptides@gmail.com</p>
 </div>
 """, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
