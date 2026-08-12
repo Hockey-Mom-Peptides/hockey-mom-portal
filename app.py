@@ -93,18 +93,19 @@ st.markdown("""
     
     h1, h2, h3, span, p { color: #0f172a; }
     
-    /* Elite Hero Banner */
+    /* Elite Hero Banner - Fixed Readability */
     .hero-banner {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        color: #ffffff;
+        color: #ffffff !important;
         padding: 1.5rem;
         border-radius: 14px;
         text-align: center;
+        margin-top: 1rem;
         margin-bottom: 2rem;
         box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
     }
-    .hero-banner p { color: #94a3b8; font-size: 0.95rem; margin: 0; font-weight: 500; letter-spacing: 0.5px; }
-    .hero-banner h4 { color: #ffffff; margin: 0 0 5px 0; font-weight: 700; letter-spacing: 0.2px; }
+    .hero-banner p { color: #cbd5e1 !important; font-size: 0.95rem; margin: 0; font-weight: 500; letter-spacing: 0.5px; }
+    .hero-banner h4 { color: #ffffff !important; margin: 0 0 5px 0; font-weight: 700; letter-spacing: 0.2px; }
 
     /* Custom Input and Select Fields */
     .stTextInput>div>div>input, .stSelectbox>div>div>div {
@@ -173,8 +174,8 @@ st.markdown("""
 # --- 4. AGE VERIFICATION GATE (21+) ---
 if not st.session_state.verified_21:
     st.markdown("<div class='age-gate-container'>", unsafe_allow_html=True)
-    if os.path.exists("logo.png"): st.image("logo.png", width=150)
-    elif os.path.exists("logo.jpg"): st.image("logo.jpg", width=150)
+    if os.path.exists("logo.png"): st.image("logo.png", use_container_width=True)
+    elif os.path.exists("logo.jpg"): st.image("logo.jpg", use_container_width=True)
     
     st.markdown("<h2 style='color: #0f172a; margin-top: 20px; font-weight: 800;'>Age Verification</h2>", unsafe_allow_html=True)
     st.markdown("<p style='color: #64748b; margin-bottom: 30px; line-height: 1.5;'>You must be at least 21 years of age to enter Spicy Hockey Mom's Peptide Group portal.</p>", unsafe_allow_html=True)
@@ -194,11 +195,13 @@ if not st.session_state.verified_21:
 # --- 5. MAIN STOREFRONT ---
 st.markdown("<div class='animated-header'>", unsafe_allow_html=True)
 
-logo_col1, logo_col2, logo_col3 = st.columns([1, 2, 1])
-with logo_col2:
-    if os.path.exists("logo.png"): st.image("logo.png", use_container_width=True)
-    elif os.path.exists("logo.jpg"): st.image("logo.jpg", use_container_width=True)
-    else: st.markdown("<h2 style='text-align: center; font-weight: 800;'>SPICY HOCKEY MOM'S PEPTIDE GROUP</h2>", unsafe_allow_html=True)
+# Full-width logo display spanning the entire container width
+if os.path.exists("logo.png"): 
+    st.image("logo.png", use_container_width=True)
+elif os.path.exists("logo.jpg"): 
+    st.image("logo.jpg", use_container_width=True)
+else: 
+    st.markdown("<h2 style='text-align: center; font-weight: 800;'>SPICY HOCKEY MOM'S PEPTIDE GROUP</h2>", unsafe_allow_html=True)
 
 st.markdown("""
 <div class="hero-banner">
