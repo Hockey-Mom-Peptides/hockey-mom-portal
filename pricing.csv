@@ -1,7 +1,8 @@
-Code,Name,Description,RetailPrice,Tier1Qty,Tier1Price,Tier2Qty,Tier2Price,Tier3Price,Image
-PC,3ml Injector Vial Storage Case,Secure travel-ready storage for standard 3ml peptide vials.,15,4,8,14,7,6,pen vial storage.png
-NG,Syringe Guide System,Precision alignment tool for smooth consistent needle placement.,10,4,5,14,4,3,guide.png
-SC,Sharps Container,"Container that allows for safe removal, and storage of used sharps from injection pen.",15,15,15,15,15,15,sharps.png
-ND,Pen Needles qty(20),Replacment 1 times use needles for pen. Comes in a qty of 20 needles.,7,7,7,7,7,7,pen needles.png
-IP,Injection pen and case,"Case, and multi use pen.",45,45,45,45,45,45,pen.png
-
+Code,Name,Description,RetailPrice,Tier1Qty,Tier1Price,Tier2Qty,Tier2Price,Tier3Price,Image,Visibility
+PC,3ml Injector Vial Storage Case,Secure travel-ready storage for standard 3ml peptide vials.,15,4,8,14,7,6,pen vial storage.png,public
+NG,Syringe Guide System,Precision alignment tool for smooth consistent needle placement.,10,4,5,14,4,3,guide.png,public
+SC,Sharps Container,"Container that allows for safe removal, and storage of used sharps from injection pen.",15,15,15,15,15,15,sharps.png,public
+ND,Pen Needles qty(20),Replacment 1 times use needles for pen. Comes in a qty of 20 needles.,7,7,7,7,7,7,pen needles.png,public
+IP,Injection pen and case,"Case, and multi use pen.",45,45,45,45,45,45,pen.png,public
+KL80,KLOW 80mg,"Investigated in regenerative, anti-inflammatory, and tissue-repair research. For laboratory research purposes only.",65,,,,,,,hidden
+TZ30,GLP-2TZ 30mg,"Studied in metabolic, glycemic, and weight-management research pathways.For laboratory research purposes only.",90,,,,,,,hidden
