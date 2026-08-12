@@ -93,27 +93,28 @@ st.markdown("""
     
     h1, h2, h3, span, p { color: #0f172a; }
     
-    /* Elite Hero Banner - Explicit High-Contrast Text Styling */
+    /* Crystal Clear High-Contrast Hero Banner */
     .hero-banner {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        padding: 1.5rem;
-        border-radius: 14px;
+        background: #ffffff;
+        border: 2px solid #0f172a;
+        padding: 1.25rem;
+        border-radius: 12px;
         text-align: center;
         margin-top: 1rem;
         margin-bottom: 2rem;
-        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
     }
     .hero-banner h4 {
-        color: #ffffff !important;
-        font-size: 1.25rem !important;
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
         font-weight: 800 !important;
-        margin: 0 0 8px 0 !important;
+        margin: 0 0 6px 0 !important;
         letter-spacing: 0.5px !important;
     }
     .hero-banner p {
-        color: #38bdf8 !important;
-        font-size: 1rem !important;
-        font-weight: 600 !important;
+        color: #dc2626 !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
         margin: 0 !important;
         letter-spacing: 0.3px !important;
     }
