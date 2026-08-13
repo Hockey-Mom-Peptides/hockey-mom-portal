@@ -164,7 +164,7 @@ st.markdown(f"""
     .block-container {{ 
         padding-top: 2rem; 
         padding-bottom: 4rem; 
-        background-color: rgba(255, 255, 255, 0.93); 
+        background-color: rgba(255, 255, 255, 0.70); 
         border-radius: 20px;
         margin-top: 2rem;
         margin-bottom: 2rem;
