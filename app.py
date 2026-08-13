@@ -4,8 +4,8 @@ import csv
 import urllib.parse
 
 # --- CONFIGURATION ---
-CASH_TAG = "$HockeyMomPeptides"  
-VENMO_HANDLE = "@HockeyMomPeptides" 
+CASH_TAG = "$Hockeymomma3"  
+VENMO_HANDLE = "@Jamie-Obeginski-1" 
 SHOP_EMAIL = "hockeymompeptides@gmail.com"
 
 # --- 1. LOAD DATABASES FROM CSV ---
