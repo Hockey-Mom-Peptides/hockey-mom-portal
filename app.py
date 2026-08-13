@@ -267,7 +267,10 @@ st.markdown(f"""
 if not st.session_state.verified_21:
     st.markdown("<div class='age-gate-container'>", unsafe_allow_html=True)
     
-    if os.path.exists("animated_logo.gif"): 
+    # 1. Load the animated video
+    if os.path.exists("intro.mp4"): 
+        st.video("intro.mp4", autoplay=True)
+    elif os.path.exists("animated_logo.gif"): 
         st.image("animated_logo.gif", use_container_width=True)
     elif os.path.exists("logo.png"): 
         st.image("logo.png", use_container_width=True)
@@ -277,11 +280,13 @@ if not st.session_state.verified_21:
     
     button_placeholder = st.empty()
     
+    # 2. Pause the script to let the 10-second video play
     if 'gate_played' not in st.session_state:
-        time.sleep(3.0) 
+        time.sleep(10.0) # <--- Set to 10 seconds to match the video length
         st.session_state.gate_played = True
         st.rerun() 
     
+    # 3. Draw the buttons after the video finishes
     with button_placeholder.container():
         col_yes, col_no = st.columns(2)
         with col_yes:
