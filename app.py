@@ -229,7 +229,6 @@ with st.container(border=True):
         st.markdown("#### 🔑 Special Access")
         st.caption("Enter code for wholesale pricing or exclusive items.")
     with access_col2:
-        # Changed from type="password" to standard text so typing is fully visible
         user_code = st.text_input("Special Code:", label_visibility="collapsed", placeholder="Enter access code here...")
 
 access_type = VALID_CODES.get(user_code, None)
@@ -277,43 +276,93 @@ with col_add:
             
     st.caption(f"*{product_details['description']}*")
     
-    add_qty = st.number_input("Quantity", min_value=1, value=1, step=1)
-    
-    current_cart_qty = st.session_state.cart.get(product_code, 0)
-    projected_total_qty = current_cart_qty + add_qty
-    
-    if is_wholesale:
-        preview_unit_price = get_wholesale_unit_price(product_code, projected_total_qty)
-        tier_label = "Wholesale Unit Price"
-    else:
-        preview_unit_price = product_details['retail_unit_price']
-        tier_label = "Retail Unit Price"
+    # --- SPECIAL HANDLING FOR START UP KIT CONFIGURATIONS ---
+    # If the selected product code corresponds to the Start Up Kit, show the custom cycle options
+    if product_code.upper() in ["STARTUP", "KIT", "START-UP-KIT"] or "START UP KIT" in product_details['name'].upper():
+        st.markdown("#### 📦 Select Your Research Cycle Options")
+        kit_options = {
+            "Trizepatide: 3-Month Starter Dose (2.5mg/wk)": 135.00,
+            "Retatrutide: 3-Month Starter Dose (2mg/wk)": 195.00,
+            "KLOW: 8-Week Cycle": 220.00,
+            "KLOW: 12-Week Cycle": 285.00
+        }
+        selected_cycle = st.selectbox("Choose package configuration:", options=list(kit_options.keys()))
+        cycle_price = kit_options[selected_cycle]
         
-    preview_subtotal = preview_unit_price * add_qty
-    
-    st.write("")
-    with st.container(border=True):
-        prev_col1, prev_col2 = st.columns(2)
-        prev_col1.metric(label=tier_label, value=f"${preview_unit_price:,.2f}")
-        prev_col2.metric(label="Adding Subtotal", value=f"${preview_subtotal:,.2f}")
-    st.write("")
-    
-    if st.button("➕ Add to Order", use_container_width=True):
-        if product_code in st.session_state.cart:
-            st.session_state.cart[product_code] += add_qty
+        add_qty = st.number_input("Quantity", min_value=1, value=1, step=1)
+        preview_subtotal = cycle_price * add_qty
+        
+        st.write("")
+        with st.container(border=True):
+            prev_col1, prev_col2 = st.columns(2)
+            prev_col1.metric(label="Package Option Price", value=f"${cycle_price:,.2f}")
+            prev_col2.metric(label="Adding Subtotal", value=f"${preview_subtotal:,.2f}")
+        st.write("")
+        
+        # Unique cart key for selected kit + cycle combination
+        cart_item_key = f"{product_code} ({selected_cycle})"
+        
+        if st.button("➕ Add Kit to Order", use_container_width=True):
+            if cart_item_key in st.session_state.cart:
+                st.session_state.cart[cart_item_key]["qty"] += add_qty
+            else:
+                st.session_state.cart[cart_item_key] = {
+                    "code": product_code,
+                    "name": f"{product_details['name']} - {selected_cycle}",
+                    "unit_price": cycle_price,
+                    "qty": add_qty
+                }
+            st.session_state.order_ready = False
+            st.rerun()
+            
+    else:
+        # Standard product workflow
+        add_qty = st.number_input("Quantity", min_value=1, value=1, step=1)
+        
+        current_cart_qty = st.session_state.cart.get(product_code, {}).get("qty", 0) if isinstance(st.session_state.cart.get(product_code), dict) else st.session_state.cart.get(product_code, 0)
+        projected_total_qty = current_cart_qty + add_qty
+        
+        if is_wholesale:
+            preview_unit_price = get_wholesale_unit_price(product_code, projected_total_qty)
+            tier_label = "Wholesale Unit Price"
         else:
-            st.session_state.cart[product_code] = add_qty
-        st.session_state.order_ready = False
-        st.rerun()
+            preview_unit_price = product_details['retail_unit_price']
+            tier_label = "Retail Unit Price"
+            
+        preview_subtotal = preview_unit_price * add_qty
+        
+        st.write("")
+        with st.container(border=True):
+            prev_col1, prev_col2 = st.columns(2)
+            prev_col1.metric(label=tier_label, value=f"${preview_unit_price:,.2f}")
+            prev_col2.metric(label="Adding Subtotal", value=f"${preview_subtotal:,.2f}")
+        st.write("")
+        
+        if st.button("➕ Add to Order", use_container_width=True):
+            if product_code in st.session_state.cart:
+                if isinstance(st.session_state.cart[product_code], dict):
+                    st.session_state.cart[product_code]["qty"] += add_qty
+                else:
+                    st.session_state.cart[product_code] += add_qty
+            else:
+                st.session_state.cart[product_code] = {
+                    "code": product_code,
+                    "name": product_details['name'],
+                    "unit_price": preview_unit_price,
+                    "qty": add_qty
+                }
+            st.session_state.order_ready = False
+            st.rerun()
 
 with col_cart:
-    total_items_in_cart = sum(st.session_state.cart.values())
+    total_items_in_cart = sum(item["qty"] if isinstance(item, dict) else item for item in st.session_state.cart.values())
     st.markdown(f"### 2. Current Order & Shipping ({total_items_in_cart})")
     
     cart_keys = list(st.session_state.cart.keys())
-    for code in cart_keys:
-        if code not in available_products:
-            del st.session_state.cart[code]
+    for key in cart_keys:
+        # Cleanup invalid keys if catalog changed
+        if not key.startswith("START") and key not in available_products and not any(k in key for k in available_products.keys()):
+            del st.session_state.cart[key]
 
     if not st.session_state.cart:
         st.info("Your cart is empty.")
@@ -322,17 +371,26 @@ with col_cart:
         grand_total = 0.0
         order_items_summary = ""
         
-        for code, total_qty in st.session_state.cart.items():
-            if is_wholesale:
-                unit_price = get_wholesale_unit_price(code, total_qty)
+        for key, item_data in st.session_state.cart.items():
+            if isinstance(item_data, dict):
+                item_name = item_data["name"]
+                unit_price = item_data["unit_price"]
+                total_qty = item_data["qty"]
             else:
-                unit_price = PRODUCTS[code]['retail_unit_price']
+                # Fallback for old simple quantity tracking if any exists
+                code = key
+                total_qty = item_data
+                if is_wholesale:
+                    unit_price = get_wholesale_unit_price(code, total_qty)
+                else:
+                    unit_price = PRODUCTS[code]['retail_unit_price']
+                item_name = PRODUCTS[code]['name']
                 
             line_total = unit_price * total_qty
             grand_total += line_total
             
-            st.markdown(f"<div class='receipt-row'><span><b>{total_qty}x</b> {code} @ ${unit_price:,.2f}</span><span>${line_total:,.2f}</span></div>", unsafe_allow_html=True)
-            order_items_summary += f"- {total_qty}x {PRODUCTS[code]['name']} (${line_total:,.2f})\n"
+            st.markdown(f"<div class='receipt-row'><span><b>{total_qty}x</b> {item_name} @ ${unit_price:,.2f}</span><span>${line_total:,.2f}</span></div>", unsafe_allow_html=True)
+            order_items_summary += f"- {total_qty}x {item_name} (${line_total:,.2f})\n"
             
         st.markdown(f"<div class='receipt-total'><span>TOTAL DUE:</span><span>${grand_total:,.2f}</span></div>", unsafe_allow_html=True)
         st.write("")
