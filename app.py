@@ -124,7 +124,7 @@ if 'verified_21' not in st.session_state:
     st.session_state.verified_21 = False
 
 # --- 3. PAGE CONFIGURATION & ELITE UI CSS ---
-st.set_page_config(page_title="Power Play Peptides", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Power Play Peptides", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown("""
 <style>
