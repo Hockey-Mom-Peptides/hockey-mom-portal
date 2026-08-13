@@ -2,11 +2,15 @@ import streamlit as st
 import os
 import csv
 import urllib.parse
+import smtplib
+from email.message import EmailMessage
+import random
 
 # --- CONFIGURATION ---
 CASH_TAG = "$Hockeymomma3"  
 VENMO_HANDLE = "@Jamie-Obeginski-1" 
 SHOP_EMAIL = "hockeymompeptides@gmail.com"
+EMAIL_PASSWORD = "your-app-specific-password" # Add your Gmail App Password here
 
 # --- 1. LOAD DATABASES FROM CSV ---
 def load_catalog():
@@ -45,13 +49,49 @@ def load_partner_codes():
 PRODUCTS = load_catalog()
 VALID_CODES = load_partner_codes()
 
-# --- 2. PRICING LOGIC ---
+# --- 2. LOGIC FUNCTIONS ---
 def get_wholesale_unit_price(product_code, qty):
     p = PRODUCTS.get(product_code)
     if not p: return 0.00
     if qty <= p["t1_qty"]: return p["t1_price"]
     elif qty <= p["t2_qty"]: return p["t2_price"]
     else: return p["t3_price"]
+
+def generate_order_id():
+    return f"HMP-{random.randint(1000, 9999)}"
+
+def send_itemized_receipt(to_email, order_id, summary_text, total, cust_name, address):
+    msg = EmailMessage()
+    msg['Subject'] = f"Receipt for Order {order_id} - Power Play Peptides"
+    msg['From'] = SHOP_EMAIL
+    msg['To'] = to_email
+
+    html_content = f"""
+    <html>
+      <body>
+        <h2>Thank you for your order, {cust_name}!</h2>
+        <p>Your order <strong>{order_id}</strong> has been received and is pending payment.</p>
+        <p><strong>Shipping To:</strong><br>{address.replace(chr(10), '<br>')}</p>
+        <hr>
+        <h3>Order Summary</h3>
+        <pre style="font-family: inherit;">{summary_text}</pre>
+        <p><strong>Total Due: ${total:,.2f}</strong></p>
+        <hr>
+        <p>If you have any questions, reply to this email at {SHOP_EMAIL}.</p>
+      </body>
+    </html>
+    """
+    msg.set_content("Please enable HTML to view your receipt.")
+    msg.add_alternative(html_content, subtype='html')
+
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(SHOP_EMAIL, EMAIL_PASSWORD)
+            smtp.send_message(msg)
+        return True
+    except Exception as e:
+        st.error(f"Failed to send email receipt. Error: {e}")
+        return False
 
 # --- INITIALIZE SESSION STATE MEMORY ---
 if 'cart' not in st.session_state:
@@ -64,7 +104,7 @@ if 'verified_21' not in st.session_state:
     st.session_state.verified_21 = False
 
 # --- 3. PAGE CONFIGURATION & ELITE UI CSS ---
-st.set_page_config(page_title="Spicy Hockey Mom's Peptide Group", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Power Play Peptides", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
 <style>
@@ -190,7 +230,7 @@ if not st.session_state.verified_21:
     elif os.path.exists("logo.jpg"): st.image("logo.jpg", use_container_width=True)
     
     st.markdown("<h2 style='color: #0f172a; margin-top: 20px; font-weight: 800;'>Age Verification</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #64748b; margin-bottom: 30px; line-height: 1.5;'>You must be at least 21 years of age to enter Spicy Hockey Mom's Peptide Group portal.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #64748b; margin-bottom: 30px; line-height: 1.5;'>You must be at least 21 years of age to enter the Power Play Peptides portal.</p>", unsafe_allow_html=True)
     
     col_yes, col_no = st.columns(2)
     with col_yes:
@@ -212,17 +252,16 @@ if os.path.exists("logo.png"):
 elif os.path.exists("logo.jpg"): 
     st.image("logo.jpg", use_container_width=True)
 else: 
-    st.markdown("<h2 style='text-align: center; font-weight: 800;'>SPICY HOCKEY MOM'S PEPTIDE GROUP</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; font-weight: 800;'>POWER PLAY PEPTIDES</h2>", unsafe_allow_html=True)
 
 st.markdown("""
 <div class="hero-banner">
     <h4>POWER PLAY PEPTIDES & SUPPORTING PRODUCTS</h4>
-    <p>Secure Client Portal &nbsp;•&nbsp; hockeymompeptides@gmail.com</p>
 </div>
 """, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# --- SPECIAL ACCESS BAR (Visible Text Input) ---
+# --- SPECIAL ACCESS BAR ---
 with st.container(border=True):
     access_col1, access_col2 = st.columns([1, 2])
     with access_col1:
@@ -258,7 +297,7 @@ if not available_products:
     st.error("⚠️ No products available to display.")
     st.stop()
 
-# --- TWO-COLUMN LAYOUT: ADD ITEMS vs CURRENT ORDER ---
+# --- TWO-COLUMN LAYOUT ---
 col_add, col_cart = st.columns([1.2, 1], gap="large")
 
 with col_add:
@@ -277,7 +316,6 @@ with col_add:
             
     st.caption(f"*{product_details['description']}*")
     
-    # --- RESTRICTED START UP KIT CONFIGURATION (VIP ONLY) ---
     is_starter_kit = (product_code.upper() in ["STARTUP", "KIT", "START-UP-KIT"] or "START UP KIT" in product_details['name'].upper())
     
     if is_starter_kit and not is_vip:
@@ -285,15 +323,14 @@ with col_add:
     elif is_starter_kit and is_vip:
         st.markdown("#### 📦 Select Your Research Cycle Options")
         
-        # --- FIXED EMBEDDED VIDEO LINK FOR START UP KIT ---
         st.markdown("##### 🎥 Watch the Kit Overview Video")
         st.video("https://www.youtube.com/watch?v=4fqIK7gYt0o")
         
         kit_options = {
             "Trizepatide: 3-Month Starter Dose (2.5mg/wk)": 135.00,
             "Retatrutide: 3-Month Starter Dose (2mg/wk)": 195.00,
-            "KLOW: 8-Week Cycle": 220.00,
-            "KLOW: 12-Week Cycle": 285.00
+            "Vial: 8-Week Cycle": 220.00,
+            "Vial: 12-Week Cycle": 285.00
         }
         selected_cycle = st.selectbox("Choose package configuration:", options=list(kit_options.keys()))
         cycle_price = kit_options[selected_cycle]
@@ -324,7 +361,6 @@ with col_add:
             st.rerun()
             
     else:
-        # Standard product workflow (non-kit items)
         add_qty = st.number_input("Quantity", min_value=1, value=1, step=1)
         
         current_cart_qty = st.session_state.cart.get(product_code, {}).get("qty", 0) if isinstance(st.session_state.cart.get(product_code), dict) else st.session_state.cart.get(product_code, 0)
@@ -415,69 +451,55 @@ with col_cart:
                     if not cust_name or not cust_email or not cust_address:
                         st.error("Please fill in your Name, Email, and Shipping Address.")
                     else:
-                        st.session_state.order_ready = True
-                        st.session_state.form_data = {
-                            "name": cust_name,
-                            "email": cust_email,
-                            "phone": cust_phone,
-                            "address": cust_address,
-                            "total": f"${grand_total:,.2f}",
-                            "summary": order_items_summary
-                        }
-                        st.rerun()
+                        order_id = generate_order_id()
+                        email_sent = send_itemized_receipt(cust_email, order_id, order_items_summary, grand_total, cust_name, cust_address)
+                        
+                        if email_sent:
+                            st.session_state.order_ready = True
+                            st.session_state.form_data = {
+                                "order_id": order_id,
+                                "name": cust_name,
+                                "email": cust_email,
+                                "phone": cust_phone,
+                                "address": cust_address,
+                                "total_str": f"${grand_total:,.2f}",
+                                "raw_total": grand_total,
+                                "summary": order_items_summary
+                            }
+                            st.rerun()
+                        else:
+                            st.error("Could not send receipt. Please check shop email credentials.")
 
         if st.session_state.order_ready:
             fd = st.session_state.form_data
+            st.success(f"Order **{fd['order_id']}** placed successfully! An itemized receipt has been sent to **{fd['email']}**.")
             
-            email_subject = f"New Order from {fd['name']} - Total: {fd['total']}"
-            email_body = f"""Hello,
-
-I have placed an order with Spicy Hockey Mom's Peptide Group. Here are my details:
-
-CUSTOMER INFORMATION:
-Name: {fd['name']}
-Email: {fd['email']}
-Phone: {fd['phone']}
-Shipping Address:
-{fd['address']}
-
-ORDER SUMMARY:
-{fd['summary']}
-TOTAL DUE: {fd['total']}
-Pricing Tier: {'Wholesale' if is_wholesale else 'Retail / Special Access'}
-
-I am sending payment via Cash App / Venmo shortly.
-"""
-            encoded_subject = urllib.parse.quote(email_subject)
-            encoded_body = urllib.parse.quote(email_body)
-            mailto_link = f"mailto:{SHOP_EMAIL}?subject={encoded_subject}&body={encoded_body}"
+            # Format Venmo URL (Spaces to +, strip @ symbol)
+            venmo_username = VENMO_HANDLE.replace("@", "")
+            venmo_note = urllib.parse.quote_plus(f"Order {fd['order_id']}")
+            
+            venmo_url = f"https://venmo.com/{venmo_username}?txn=pay&amount={fd['raw_total']:.2f}&note={venmo_note}"
+            cashapp_url = f"https://cash.app/{CASH_TAG}/{fd['raw_total']:.2f}"
             
             st.markdown(f"""
             <div class="payment-box">
-                <h3 style="margin-top:0; color:#dc2626;">Step 2: Send Order & Payment</h3>
-                <p>1. Click the button below to email your packing receipt to the shop:</p>
+                <h3 style="margin-top:0; color:#dc2626;">Step 2: Complete Your Payment</h3>
+                <p>Click a button below to open your payment app. Your total (<b>{fd['total_str']}</b>) and order number will be pre-filled.</p>
+                
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
+                    <a href="{venmo_url}" target="_blank" style="background-color:#008CFF; color:white; padding:12px 24px; text-decoration:none; border-radius:6px; font-weight:bold; text-align:center; flex:1;">
+                        Pay with Venmo
+                    </a>
+                    <a href="{cashapp_url}" target="_blank" style="background-color:#00D632; color:white; padding:12px 24px; text-decoration:none; border-radius:6px; font-weight:bold; text-align:center; flex:1;">
+                        Pay with Cash App
+                    </a>
+                </div>
             </div>
             """, unsafe_allow_html=True)
             
-            st.link_button("📧 Click Here to Email Packing Receipt", mailto_link, use_container_width=True)
-            
-            st.markdown(f"""
-            <div class="payment-box" style="margin-top:10px;">
-                <p>2. Send your payment of <b>{fd['total']}</b> via:</p>
-                <ul>
-                    <li><b>Cash App:</b> <code>{CASH_TAG}</code></li>
-                    <li><b>Venmo:</b> <code>{VENMO_HANDLE}</code></li>
-                </ul>
-                <p style="font-size:0.9rem; margin-bottom:0;"><b>Important:</b> Include your name (<b>{fd['name']}</b>) in the payment memo so it can be matched to your receipt!</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        st.write("")
-        
-        button_label = "💳 Payment Sent - Finish Order" if st.session_state.order_ready else "🗑️ Clear Order"
-        
-        if st.button(button_label, use_container_width=True):
-            st.session_state.cart = {}
-            st.session_state.order_ready = False
-            st.session_state.form_data = {}
-            st.rerun()
+            st.write("")
+            if st.button("💳 Payment Sent - Finish Order", use_container_width=True):
+                st.session_state.cart = {}
+                st.session_state.order_ready = False
+                st.session_state.form_data = {}
+                st.rerun()
