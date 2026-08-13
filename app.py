@@ -10,7 +10,7 @@ import random
 CASH_TAG = "$Hockeymomma3"  
 VENMO_HANDLE = "@Jamie-Obeginski-1" 
 SHOP_EMAIL = "hockeymompeptides@gmail.com"
-EMAIL_PASSWORD = "your-app-specific-password" # Add your Gmail App Password here
+EMAIL_PASSWORD = "vqbg juzj kqwj xphd" # Add your Gmail App Password here
 
 # --- 1. LOAD DATABASES FROM CSV ---
 def load_catalog():
