@@ -65,6 +65,7 @@ def send_itemized_receipt(to_email, order_id, summary_text, total, cust_name, ad
     msg['Subject'] = f"Receipt for Order {order_id} - Power Play Peptides"
     msg['From'] = SHOP_EMAIL
     msg['To'] = to_email
+    msg['Bcc'] = SHOP_EMAIL  # <--- This sends an exact copy to the shop's email!
 
     html_content = f"""
     <html>
@@ -90,7 +91,7 @@ def send_itemized_receipt(to_email, order_id, summary_text, total, cust_name, ad
             smtp.send_message(msg)
         return True
     except Exception as e:
-        st.error(f"Failed to send email receipt. Error: {e}")
+        print(f"Email Error: {e}")
         return False
 
 # --- INITIALIZE SESSION STATE MEMORY ---
@@ -100,6 +101,8 @@ if 'order_ready' not in st.session_state:
     st.session_state.order_ready = False
 if 'form_data' not in st.session_state:
     st.session_state.form_data = {}
+if 'email_success' not in st.session_state:
+    st.session_state.email_success = True
 if 'verified_21' not in st.session_state:
     st.session_state.verified_21 = False
 
@@ -150,13 +153,6 @@ st.markdown("""
         font-weight: 800 !important;
         margin: 0 0 6px 0 !important;
         letter-spacing: 0.5px !important;
-    }
-    .hero-banner p {
-        color: #dc2626 !important;
-        font-size: 0.95rem !important;
-        font-weight: 700 !important;
-        margin: 0 !important;
-        letter-spacing: 0.3px !important;
     }
 
     /* Custom Input and Select Fields */
@@ -452,27 +448,32 @@ with col_cart:
                         st.error("Please fill in your Name, Email, and Shipping Address.")
                     else:
                         order_id = generate_order_id()
+                        
+                        # Attempt to send email, but advance to checkout regardless
                         email_sent = send_itemized_receipt(cust_email, order_id, order_items_summary, grand_total, cust_name, cust_address)
                         
-                        if email_sent:
-                            st.session_state.order_ready = True
-                            st.session_state.form_data = {
-                                "order_id": order_id,
-                                "name": cust_name,
-                                "email": cust_email,
-                                "phone": cust_phone,
-                                "address": cust_address,
-                                "total_str": f"${grand_total:,.2f}",
-                                "raw_total": grand_total,
-                                "summary": order_items_summary
-                            }
-                            st.rerun()
-                        else:
-                            st.error("Could not send receipt. Please check shop email credentials.")
+                        st.session_state.email_success = email_sent
+                        st.session_state.order_ready = True
+                        st.session_state.form_data = {
+                            "order_id": order_id,
+                            "name": cust_name,
+                            "email": cust_email,
+                            "phone": cust_phone,
+                            "address": cust_address,
+                            "total_str": f"${grand_total:,.2f}",
+                            "raw_total": grand_total,
+                            "summary": order_items_summary
+                        }
+                        st.rerun()
 
         if st.session_state.order_ready:
             fd = st.session_state.form_data
-            st.success(f"Order **{fd['order_id']}** placed successfully! An itemized receipt has been sent to **{fd['email']}**.")
+            
+            # Display Success or Warning based on Email Status
+            if st.session_state.email_success:
+                st.success(f"Order **{fd['order_id']}** placed successfully! An itemized receipt has been sent to **{fd['email']}**.")
+            else:
+                st.warning(f"Order **{fd['order_id']}** placed! We encountered an error sending the email receipt, but your order is logged. Please proceed below.")
             
             # Format Venmo URL (Spaces to +, strip @ symbol)
             venmo_username = VENMO_HANDLE.replace("@", "")
@@ -485,19 +486,28 @@ with col_cart:
             <div class="payment-box">
                 <h3 style="margin-top:0; color:#dc2626;">Step 2: Complete Your Payment</h3>
                 <p>Click a button below to open your payment app. Your total (<b>{fd['total_str']}</b>) and order number will be pre-filled.</p>
-                
-                <div style="display: flex; gap: 15px; margin-top: 20px;">
-                    <a href="{venmo_url}" target="_blank" style="background-color:#008CFF; color:white; padding:12px 24px; text-decoration:none; border-radius:6px; font-weight:bold; text-align:center; flex:1;">
-                        Pay with Venmo
-                    </a>
-                    <a href="{cashapp_url}" target="_blank" style="background-color:#00D632; color:white; padding:12px 24px; text-decoration:none; border-radius:6px; font-weight:bold; text-align:center; flex:1;">
-                        Pay with Cash App
-                    </a>
-                </div>
             </div>
             """, unsafe_allow_html=True)
             
+            # Render buttons using native Streamlit columns to guarantee rendering
             st.write("")
+            col_v, col_c = st.columns(2)
+            with col_v:
+                st.markdown(f"""
+                <a href="{venmo_url}" target="_blank" style="display:block; background-color:#008CFF; color:white; padding:14px 24px; text-decoration:none; border-radius:8px; font-weight:bold; text-align:center;">
+                    Pay with Venmo
+                </a>
+                """, unsafe_allow_html=True)
+            with col_c:
+                st.markdown(f"""
+                <a href="{cashapp_url}" target="_blank" style="display:block; background-color:#00D632; color:white; padding:14px 24px; text-decoration:none; border-radius:8px; font-weight:bold; text-align:center;">
+                    Pay with Cash App
+                </a>
+                """, unsafe_allow_html=True)
+                
+            st.write("")
+            st.write("")
+            
             if st.button("💳 Payment Sent - Finish Order", use_container_width=True):
                 st.session_state.cart = {}
                 st.session_state.order_ready = False
