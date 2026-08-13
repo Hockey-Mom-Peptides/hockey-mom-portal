@@ -65,7 +65,7 @@ def send_itemized_receipt(to_email, order_id, summary_text, total, cust_name, ad
     msg['Subject'] = f"Receipt for Order {order_id} - Power Play Peptides"
     msg['From'] = SHOP_EMAIL
     msg['To'] = to_email
-    msg['Bcc'] = SHOP_EMAIL  # <--- This sends an exact copy to the shop's email!
+    msg['Bcc'] = SHOP_EMAIL
 
     html_content = f"""
     <html>
@@ -94,7 +94,24 @@ def send_itemized_receipt(to_email, order_id, summary_text, total, cust_name, ad
         print(f"Email Error: {e}")
         return False
 
+# --- STATE MANAGEMENT CALLBACKS ---
+def nav_to(page_name, product_code=None):
+    st.session_state.page = page_name
+    if product_code:
+        st.session_state.selected_product = product_code
+
+def update_cart_qty(item_key):
+    new_qty = st.session_state[f"qty_input_{item_key}"]
+    if new_qty == 0:
+        del st.session_state.cart[item_key]
+    else:
+        st.session_state.cart[item_key]['qty'] = new_qty
+
 # --- INITIALIZE SESSION STATE MEMORY ---
+if 'page' not in st.session_state:
+    st.session_state.page = "catalog"
+if 'selected_product' not in st.session_state:
+    st.session_state.selected_product = None
 if 'cart' not in st.session_state:
     st.session_state.cart = {}
 if 'order_ready' not in st.session_state:
@@ -124,97 +141,42 @@ st.markdown("""
     
     .block-container { padding-top: 2rem; padding-bottom: 4rem; max-width: 860px; }
     
-    /* Smooth Entrance Animation */
     @keyframes eliteFadeIn {
         0% { opacity: 0; transform: translateY(12px); }
         100% { opacity: 1; transform: translateY(0); }
     }
     
-    .animated-header {
-        animation: eliteFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    
+    .animated-header { animation: eliteFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     h1, h2, h3, span, p { color: #0f172a; }
     
-    /* Crystal Clear High-Contrast Hero Banner */
     .hero-banner {
-        background: #ffffff;
-        border: 2px solid #0f172a;
-        padding: 1.25rem;
-        border-radius: 12px;
-        text-align: center;
-        margin-top: 1rem;
-        margin-bottom: 2rem;
+        background: #ffffff; border: 2px solid #0f172a; padding: 1.25rem;
+        border-radius: 12px; text-align: center; margin-top: 1rem; margin-bottom: 1rem;
         box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
     }
-    .hero-banner h4 {
-        color: #0f172a !important;
-        font-size: 1.2rem !important;
-        font-weight: 800 !important;
-        margin: 0 0 6px 0 !important;
-        letter-spacing: 0.5px !important;
-    }
+    .hero-banner h4 { color: #0f172a !important; font-size: 1.2rem !important; font-weight: 800 !important; margin: 0 0 6px 0 !important; }
 
-    /* Custom Input and Select Fields */
-    .stTextInput>div>div>input, .stSelectbox>div>div>div {
-        border-radius: 10px !important;
-        border: 1px solid #cbd5e1 !important;
-        background-color: #ffffff !important;
-    }
-    
-    /* High-End Polished Buttons */
-    .stButton>button p, .stButton>button div {
-        color: #FFFFFF !important;
-        font-weight: 600 !important;
-        font-size: 1rem !important;
+    .stTextInput>div>div>input, .stSelectbox>div>div>div, .stNumberInput>div>div>input {
+        border-radius: 10px !important; border: 1px solid #cbd5e1 !important; background-color: #ffffff !important;
     }
     
     .stButton>button {
-        background-color: #0f172a;
-        border-radius: 10px;
-        border: none;
-        padding: 0.65rem 1.2rem;
-        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        background-color: #0f172a; color: #ffffff; border-radius: 10px; border: none;
+        padding: 0.65rem 1.2rem; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15); transition: all 0.2s ease;
     }
-    .stButton>button:hover {
-        background-color: #dc2626;
-        box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
-        transform: translateY(-2px);
-    }
-    
-    /* Refined Metric Cards */
-    div[data-testid="metric-container"] {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        padding: 1.25rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
-    }
-    div[data-testid="metric-container"] > div { color: #dc2626 !important; }
+    .stButton>button:hover { background-color: #dc2626; transform: translateY(-2px); color: #ffffff; }
     
     .receipt-row { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 12px 0; font-size: 0.95rem; }
     .receipt-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.25rem; padding-top: 18px; color: #dc2626;}
     
     .payment-box {
-        background-color: #ffffff;
-        border: 2px solid #dc2626;
-        padding: 24px;
-        border-radius: 14px;
-        margin-top: 20px;
-        box-shadow: 0 10px 30px rgba(220, 38, 38, 0.08);
+        background-color: #ffffff; border: 2px solid #dc2626; padding: 24px;
+        border-radius: 14px; margin-top: 20px; box-shadow: 0 10px 30px rgba(220, 38, 38, 0.08);
     }
     
-    /* Luxury Age Verification Gate */
     .age-gate-container {
-        background: #ffffff;
-        padding: 45px;
-        border-radius: 20px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
-        text-align: center;
-        max-width: 500px;
-        margin: 70px auto;
+        background: #ffffff; padding: 45px; border-radius: 20px; border: 1px solid #e2e8f0;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12); text-align: center; max-width: 500px; margin: 70px auto;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -240,9 +202,8 @@ if not st.session_state.verified_21:
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
-# --- 5. MAIN STOREFRONT ---
+# --- 5. HEADER & NAVIGATION BAR ---
 st.markdown("<div class='animated-header'>", unsafe_allow_html=True)
-
 if os.path.exists("logo.png"): 
     st.image("logo.png", use_container_width=True)
 elif os.path.exists("logo.jpg"): 
@@ -257,183 +218,206 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# --- SPECIAL ACCESS BAR ---
-with st.container(border=True):
-    access_col1, access_col2 = st.columns([1, 2])
-    with access_col1:
-        st.markdown("#### 🔑 Special Access")
-        st.caption("Enter code for VIP/wholesale access or exclusive items.")
-    with access_col2:
-        user_code = st.text_input("Special Code:", label_visibility="collapsed", placeholder="Enter access code here...")
+# Navigation Controls
+nav_col1, nav_col2 = st.columns([3, 1])
+with nav_col1:
+    if st.session_state.page != "catalog" and not st.session_state.order_ready:
+        st.button("⬅️ Back to Catalog", on_click=nav_to, args=("catalog",))
+with nav_col2:
+    if not st.session_state.order_ready:
+        total_items = sum(item["qty"] for item in st.session_state.cart.values())
+        st.button(f"🛒 Cart ({total_items})", use_container_width=True, on_click=nav_to, args=("cart",))
 
-access_type = VALID_CODES.get(user_code, None)
-is_wholesale = (access_type == "wholesale")
-has_hidden_catalog = (access_type == "hidden_access")
-is_vip = is_wholesale or has_hidden_catalog
+st.markdown("---")
 
-if is_wholesale:
-    st.success("✓ Wholesale Pricing Unlocked")
-elif has_hidden_catalog:
-    st.success("✓ VIP Access Unlocked (Starter Kit & Exclusive Products Added)")
+# --- GLOBAL ACCESS LOGIC ---
+access_type = None
+is_wholesale = False
+has_hidden_catalog = False
+is_vip = False
 
-st.divider()
+if not st.session_state.order_ready:
+    with st.container(border=True):
+        st.markdown("🔑 **Special Access Code**")
+        user_code = st.text_input("Code:", label_visibility="collapsed", placeholder="Enter code for VIP/wholesale access...")
+        
+        access_type = VALID_CODES.get(user_code, None)
+        is_wholesale = (access_type == "wholesale")
+        has_hidden_catalog = (access_type == "hidden_access")
+        is_vip = is_wholesale or has_hidden_catalog
+
+        if is_wholesale:
+            st.success("✓ Wholesale Pricing Unlocked")
+        elif has_hidden_catalog:
+            st.success("✓ VIP Access Unlocked (Starter Kit & Exclusive Products Added)")
 
 if not PRODUCTS:
     st.error("⚠️ pricing.csv file not found! Please create it in the same folder to load your products.")
     st.stop()
-if not VALID_CODES:
-    st.warning("⚠️ partners.csv file not found or empty. Access codes are currently disabled.")
 
 available_products = {
     code: data for code, data in PRODUCTS.items() 
     if data["visibility"] == "public" or (data["visibility"] == "hidden" and has_hidden_catalog)
 }
 
-if not available_products:
-    st.error("⚠️ No products available to display.")
-    st.stop()
-
-# --- TWO-COLUMN LAYOUT ---
-col_add, col_cart = st.columns([1.2, 1], gap="large")
-
-with col_add:
-    st.markdown("### 1. Select Products")
+# ==========================================
+# VIEW 1: CATALOG GRID
+# ==========================================
+if st.session_state.page == "catalog":
+    st.markdown("### Browse Products")
     
-    product_options = [f"{code} - {data['name']}" for code, data in available_products.items()]
-    selected_item = st.selectbox("Product", product_options, label_visibility="collapsed")
-    
-    product_code = selected_item.split(" - ")[0]
-    product_details = available_products[product_code]
-    
-    img_target = product_details.get("image", "")
-    if img_target:
-        if os.path.exists(img_target) or img_target.startswith("http"):
-            st.image(img_target, use_container_width=True)
-            
-    st.caption(f"*{product_details['description']}*")
-    
-    is_starter_kit = (product_code.upper() in ["STARTUP", "KIT", "START-UP-KIT"] or "START UP KIT" in product_details['name'].upper())
-    
-    if is_starter_kit and not is_vip:
-        st.warning("🔒 **VIP Exclusive Item:** You must enter a valid VIP/Special Access code above to unlock and configure the Ultimate Start Up Kit.")
-    elif is_starter_kit and is_vip:
-        st.markdown("#### 📦 Select Your Research Cycle Options")
-        
-        st.markdown("##### 🎥 Watch the Kit Overview Video")
-        st.video("https://www.youtube.com/watch?v=4fqIK7gYt0o")
-        
-        kit_options = {
-            "Trizepatide: 3-Month Starter Dose (2.5mg/wk)": 135.00,
-            "Retatrutide: 3-Month Starter Dose (2mg/wk)": 195.00,
-            "Vial: 8-Week Cycle": 220.00,
-            "Vial: 12-Week Cycle": 285.00
-        }
-        selected_cycle = st.selectbox("Choose package configuration:", options=list(kit_options.keys()))
-        cycle_price = kit_options[selected_cycle]
-        
-        add_qty = st.number_input("Quantity", min_value=1, value=1, step=1)
-        preview_subtotal = cycle_price * add_qty
-        
-        st.write("")
-        with st.container(border=True):
-            prev_col1, prev_col2 = st.columns(2)
-            prev_col1.metric(label="Package Option Price", value=f"${cycle_price:,.2f}")
-            prev_col2.metric(label="Adding Subtotal", value=f"${preview_subtotal:,.2f}")
-        st.write("")
-        
-        cart_item_key = f"{product_code} ({selected_cycle})"
-        
-        if st.button("➕ Add Kit to Order", use_container_width=True):
-            if cart_item_key in st.session_state.cart:
-                st.session_state.cart[cart_item_key]["qty"] += add_qty
-            else:
-                st.session_state.cart[cart_item_key] = {
-                    "code": product_code,
-                    "name": f"{product_details['name']} - {selected_cycle}",
-                    "unit_price": cycle_price,
-                    "qty": add_qty
-                }
-            st.session_state.order_ready = False
-            st.rerun()
-            
-    else:
-        add_qty = st.number_input("Quantity", min_value=1, value=1, step=1)
-        
-        current_cart_qty = st.session_state.cart.get(product_code, {}).get("qty", 0) if isinstance(st.session_state.cart.get(product_code), dict) else st.session_state.cart.get(product_code, 0)
-        projected_total_qty = current_cart_qty + add_qty
-        
-        if is_wholesale:
-            preview_unit_price = get_wholesale_unit_price(product_code, projected_total_qty)
-            tier_label = "Wholesale Unit Price"
-        else:
-            preview_unit_price = product_details['retail_unit_price']
-            tier_label = "Retail Unit Price"
-            
-        preview_subtotal = preview_unit_price * add_qty
-        
-        st.write("")
-        with st.container(border=True):
-            prev_col1, prev_col2 = st.columns(2)
-            prev_col1.metric(label=tier_label, value=f"${preview_unit_price:,.2f}")
-            prev_col2.metric(label="Adding Subtotal", value=f"${preview_subtotal:,.2f}")
-        st.write("")
-        
-        if st.button("➕ Add to Order", use_container_width=True):
-            if product_code in st.session_state.cart:
-                if isinstance(st.session_state.cart[product_code], dict):
-                    st.session_state.cart[product_code]["qty"] += add_qty
+    col1, col2 = st.columns(2)
+    for idx, (code, data) in enumerate(available_products.items()):
+        # Render tiles alternating between columns
+        target_col = col1 if idx % 2 == 0 else col2
+        with target_col:
+            with st.container(border=True):
+                if data['image'] and (os.path.exists(data['image']) or data['image'].startswith("http")):
+                    st.image(data['image'], use_container_width=True)
+                
+                st.markdown(f"**{data['name']}**")
+                
+                # Truncate long descriptions for the tile view
+                short_desc = data['description'][:60] + "..." if len(data['description']) > 60 else data['description']
+                st.caption(short_desc)
+                
+                if is_wholesale:
+                    st.markdown(f"<span style='color:#dc2626; font-weight:bold;'>Starting at: ${data['t3_price']:.2f}</span>", unsafe_allow_html=True)
                 else:
-                    st.session_state.cart[product_code] += add_qty
-            else:
-                st.session_state.cart[product_code] = {
-                    "code": product_code,
-                    "name": product_details['name'],
-                    "unit_price": preview_unit_price,
-                    "qty": add_qty
+                    st.markdown(f"<span style='color:#dc2626; font-weight:bold;'>${data['retail_unit_price']:.2f}</span>", unsafe_allow_html=True)
+                
+                st.write("")
+                st.button("View Details", key=f"view_{code}", use_container_width=True, on_click=nav_to, args=("product_detail", code))
+
+
+# ==========================================
+# VIEW 2: PRODUCT DETAIL PAGE
+# ==========================================
+elif st.session_state.page == "product_detail":
+    code = st.session_state.selected_product
+    if code not in available_products:
+        st.error("Product not found or access restricted.")
+        st.button("Return Home", on_click=nav_to, args=("catalog",))
+    else:
+        product_details = available_products[code]
+        
+        detail_img_col, detail_info_col = st.columns([1, 1.2])
+        
+        with detail_img_col:
+            if product_details['image'] and (os.path.exists(product_details['image']) or product_details['image'].startswith("http")):
+                st.image(product_details['image'], use_container_width=True)
+                
+        with detail_info_col:
+            st.markdown(f"## {product_details['name']}")
+            st.write(product_details['description'])
+            st.divider()
+            
+            is_starter_kit = (code.upper() in ["STARTUP", "KIT", "START-UP-KIT"] or "START UP KIT" in product_details['name'].upper())
+            
+            if is_starter_kit and not is_vip:
+                st.warning("🔒 **VIP Exclusive Item:** You must enter a valid VIP/Special Access code to configure the Ultimate Start Up Kit.")
+            
+            elif is_starter_kit and is_vip:
+                st.markdown("#### 📦 Select Your Research Cycle Options")
+                st.video("https://www.youtube.com/watch?v=4fqIK7gYt0o")
+                
+                kit_options = {
+                    "Trizepatide: 3-Month Starter Dose (2.5mg/wk)": 135.00,
+                    "Retatrutide: 3-Month Starter Dose (2mg/wk)": 195.00,
+                    "Vial: 8-Week Cycle": 220.00,
+                    "Vial: 12-Week Cycle": 285.00
                 }
-            st.session_state.order_ready = False
-            st.rerun()
+                selected_cycle = st.selectbox("Choose package configuration:", options=list(kit_options.keys()))
+                cycle_price = kit_options[selected_cycle]
+                
+                add_qty = st.number_input("Quantity", min_value=1, value=1, step=1, key="kit_qty")
+                preview_subtotal = cycle_price * add_qty
+                
+                st.markdown(f"**Total:** ${preview_subtotal:.2f}")
+                
+                if st.button("➕ Add to Cart", use_container_width=True):
+                    cart_item_key = f"{code}_{selected_cycle}" # Unique key for specific kit variant
+                    if cart_item_key in st.session_state.cart:
+                        st.session_state.cart[cart_item_key]["qty"] += add_qty
+                    else:
+                        st.session_state.cart[cart_item_key] = {
+                            "code": code,
+                            "name": f"{product_details['name']} - {selected_cycle}",
+                            "unit_price": cycle_price,
+                            "qty": add_qty,
+                            "is_kit": True
+                        }
+                    st.success("Added to Cart!")
+                    
+            else:
+                # Standard Product
+                add_qty = st.number_input("Quantity", min_value=1, value=1, step=1, key="std_qty")
+                current_cart_qty = st.session_state.cart.get(code, {}).get("qty", 0)
+                projected_total_qty = current_cart_qty + add_qty
+                
+                if is_wholesale:
+                    preview_unit_price = get_wholesale_unit_price(code, projected_total_qty)
+                    st.markdown(f"**Wholesale Tier Rate:** ${preview_unit_price:.2f} each")
+                else:
+                    preview_unit_price = product_details['retail_unit_price']
+                    st.markdown(f"**Retail Rate:** ${preview_unit_price:.2f} each")
+                    
+                preview_subtotal = preview_unit_price * add_qty
+                st.markdown(f"**Total:** ${preview_subtotal:.2f}")
+                
+                if st.button("➕ Add to Cart", use_container_width=True):
+                    if code in st.session_state.cart:
+                        st.session_state.cart[code]["qty"] += add_qty
+                    else:
+                        st.session_state.cart[code] = {
+                            "code": code,
+                            "name": product_details['name'],
+                            "unit_price": preview_unit_price,
+                            "qty": add_qty,
+                            "is_kit": False
+                        }
+                    st.success("Added to Cart!")
 
-with col_cart:
-    total_items_in_cart = sum(item["qty"] if isinstance(item, dict) else item for item in st.session_state.cart.values())
-    st.markdown(f"### 2. Current Order & Shipping ({total_items_in_cart})")
+
+# ==========================================
+# VIEW 3: SHOPPING CART & CHECKOUT
+# ==========================================
+elif st.session_state.page == "cart":
+    st.markdown("### Your Shopping Cart")
     
-    cart_keys = list(st.session_state.cart.keys())
-    for key in cart_keys:
-        if not key.startswith("START") and key not in available_products and not any(k in key for k in available_products.keys()):
-            del st.session_state.cart[key]
-
     if not st.session_state.cart:
-        st.info("Your cart is empty.")
-        st.session_state.order_ready = False
+        st.info("Your cart is currently empty.")
+        st.button("Return to Catalog", on_click=nav_to, args=("catalog",))
     else:
         grand_total = 0.0
         order_items_summary = ""
         
-        for key, item_data in st.session_state.cart.items():
-            if isinstance(item_data, dict):
-                item_name = item_data["name"]
-                unit_price = item_data["unit_price"]
-                total_qty = item_data["qty"]
-            else:
-                code = key
-                total_qty = item_data
-                if is_wholesale:
-                    unit_price = get_wholesale_unit_price(code, total_qty)
-                else:
-                    unit_price = PRODUCTS[code]['retail_unit_price']
-                item_name = PRODUCTS[code]['name']
-                
-            line_total = unit_price * total_qty
-            grand_total += line_total
-            
-            st.markdown(f"<div class='receipt-row'><span><b>{total_qty}x</b> {item_name} @ ${unit_price:,.2f}</span><span>${line_total:,.2f}</span></div>", unsafe_allow_html=True)
-            order_items_summary += f"- {total_qty}x {item_name} (${line_total:,.2f})\n"
-            
-        st.markdown(f"<div class='receipt-total'><span>TOTAL DUE:</span><span>${grand_total:,.2f}</span></div>", unsafe_allow_html=True)
-        st.write("")
-        
+        # Display editable cart items
         if not st.session_state.order_ready:
+            st.write("Adjust quantities below. Set to 0 to remove an item.")
+            for key, item in list(st.session_state.cart.items()):
+                # Recalculate wholesale pricing based on current cart qty dynamically
+                if is_wholesale and not item.get("is_kit", False):
+                    item["unit_price"] = get_wholesale_unit_price(item["code"], item["qty"])
+                
+                line_total = item["unit_price"] * item["qty"]
+                grand_total += line_total
+                order_items_summary += f"- {item['qty']}x {item['name']} (${line_total:,.2f})\n"
+                
+                with st.container(border=True):
+                    cart_col1, cart_col2, cart_col3 = st.columns([3, 1, 1])
+                    with cart_col1:
+                        st.markdown(f"**{item['name']}**")
+                        st.caption(f"@ ${item['unit_price']:.2f} each")
+                    with cart_col2:
+                        st.number_input("Qty", value=item["qty"], min_value=0, step=1, key=f"qty_input_{key}", on_change=update_cart_qty, args=(key,))
+                    with cart_col3:
+                        st.markdown(f"<div style='text-align:right; font-weight:bold; padding-top:35px;'>${line_total:.2f}</div>", unsafe_allow_html=True)
+            
+            st.markdown(f"<div class='receipt-total'><span>SUBTOTAL:</span><span>${grand_total:,.2f}</span></div>", unsafe_allow_html=True)
+            st.write("")
+            
+            # Checkout Form
             st.markdown("#### Enter Shipping Information")
             with st.form("shipping_form"):
                 cust_name = st.text_input("Full Name")
@@ -448,8 +432,6 @@ with col_cart:
                         st.error("Please fill in your Name, Email, and Shipping Address.")
                     else:
                         order_id = generate_order_id()
-                        
-                        # Attempt to send email, but advance to checkout regardless
                         email_sent = send_itemized_receipt(cust_email, order_id, order_items_summary, grand_total, cust_name, cust_address)
                         
                         st.session_state.email_success = email_sent
@@ -466,16 +448,16 @@ with col_cart:
                         }
                         st.rerun()
 
+        # Step 2: Payment Gateway (Locks Cart)
         if st.session_state.order_ready:
             fd = st.session_state.form_data
             
-            # Display Success or Warning based on Email Status
             if st.session_state.email_success:
                 st.success(f"Order **{fd['order_id']}** placed successfully! An itemized receipt has been sent to **{fd['email']}**.")
             else:
                 st.warning(f"Order **{fd['order_id']}** placed! We encountered an error sending the email receipt, but your order is logged. Please proceed below.")
             
-            # Format Venmo URL (Spaces to +, strip @ symbol)
+            # Format Venmo URL
             venmo_username = VENMO_HANDLE.replace("@", "")
             venmo_note = urllib.parse.quote_plus(f"Order {fd['order_id']}")
             
@@ -489,7 +471,6 @@ with col_cart:
             </div>
             """, unsafe_allow_html=True)
             
-            # Render buttons using native Streamlit columns to guarantee rendering
             st.write("")
             col_v, col_c = st.columns(2)
             with col_v:
@@ -508,8 +489,10 @@ with col_cart:
             st.write("")
             st.write("")
             
-            if st.button("💳 Payment Sent - Finish Order", use_container_width=True):
+            def finish_order():
                 st.session_state.cart = {}
                 st.session_state.order_ready = False
                 st.session_state.form_data = {}
-                st.rerun()
+                st.session_state.page = "catalog"
+                
+            st.button("💳 Payment Sent - Finish Order", use_container_width=True, on_click=finish_order)
