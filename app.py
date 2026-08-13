@@ -227,18 +227,20 @@ with st.container(border=True):
     access_col1, access_col2 = st.columns([1, 2])
     with access_col1:
         st.markdown("#### 🔑 Special Access")
-        st.caption("Enter code for wholesale pricing or exclusive items.")
+        st.caption("Enter code for VIP/wholesale access or exclusive items.")
     with access_col2:
         user_code = st.text_input("Special Code:", label_visibility="collapsed", placeholder="Enter access code here...")
 
 access_type = VALID_CODES.get(user_code, None)
 is_wholesale = (access_type == "wholesale")
 has_hidden_catalog = (access_type == "hidden_access")
+# Treating hidden_access or wholesale as VIP access level for the starter kit
+is_vip = is_wholesale or has_hidden_catalog
 
 if is_wholesale:
     st.success("✓ Wholesale Pricing Unlocked")
 elif has_hidden_catalog:
-    st.success("✓ Special Access Unlocked (Exclusive Products Added)")
+    st.success("✓ VIP Access Unlocked (Starter Kit & Exclusive Products Added)")
 
 st.divider()
 
@@ -276,9 +278,12 @@ with col_add:
             
     st.caption(f"*{product_details['description']}*")
     
-    # --- SPECIAL HANDLING FOR START UP KIT CONFIGURATIONS ---
-    # If the selected product code corresponds to the Start Up Kit, show the custom cycle options
-    if product_code.upper() in ["STARTUP", "KIT", "START-UP-KIT"] or "START UP KIT" in product_details['name'].upper():
+    # --- RESTRICTED START UP KIT CONFIGURATION (VIP ONLY) ---
+    is_starter_kit = (product_code.upper() in ["STARTUP", "KIT", "START-UP-KIT"] or "START UP KIT" in product_details['name'].upper())
+    
+    if is_starter_kit and not is_vip:
+        st.warning("🔒 **VIP Exclusive Item:** You must enter a valid VIP/Special Access code above to unlock and configure the Ultimate Start Up Kit.")
+    elif is_starter_kit and is_vip:
         st.markdown("#### 📦 Select Your Research Cycle Options")
         kit_options = {
             "Trizepatide: 3-Month Starter Dose (2.5mg/wk)": 135.00,
@@ -299,7 +304,6 @@ with col_add:
             prev_col2.metric(label="Adding Subtotal", value=f"${preview_subtotal:,.2f}")
         st.write("")
         
-        # Unique cart key for selected kit + cycle combination
         cart_item_key = f"{product_code} ({selected_cycle})"
         
         if st.button("➕ Add Kit to Order", use_container_width=True):
@@ -316,7 +320,7 @@ with col_add:
             st.rerun()
             
     else:
-        # Standard product workflow
+        # Standard product workflow (non-kit items)
         add_qty = st.number_input("Quantity", min_value=1, value=1, step=1)
         
         current_cart_qty = st.session_state.cart.get(product_code, {}).get("qty", 0) if isinstance(st.session_state.cart.get(product_code), dict) else st.session_state.cart.get(product_code, 0)
@@ -360,7 +364,6 @@ with col_cart:
     
     cart_keys = list(st.session_state.cart.keys())
     for key in cart_keys:
-        # Cleanup invalid keys if catalog changed
         if not key.startswith("START") and key not in available_products and not any(k in key for k in available_products.keys()):
             del st.session_state.cart[key]
 
@@ -377,12 +380,12 @@ with col_cart:
                 unit_price = item_data["unit_price"]
                 total_qty = item_data["qty"]
             else:
-                # Fallback for old simple quantity tracking if any exists
                 code = key
                 total_qty = item_data
                 if is_wholesale:
                     unit_price = get_wholesale_unit_price(code, total_qty)
                 else:
+                
                     unit_price = PRODUCTS[code]['retail_unit_price']
                 item_name = PRODUCTS[code]['name']
                 
