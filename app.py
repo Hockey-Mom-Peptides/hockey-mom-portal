@@ -154,6 +154,16 @@ st.markdown("""
         width: 50% !important;
         margin: 0 auto !important; 
     }
+
+    /* --- WELCOME LOGO ANIMATION (AGE GATE) --- */
+    @keyframes welcomeReveal {
+        0% { opacity: 0; transform: scale(0.85) translateY(-10px); }
+        100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .age-gate-container [data-testid="stImage"] {
+        animation: welcomeReveal 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
     
     .hero-banner {
         background: #ffffff; border: 2px solid #0f172a; padding: 1.25rem;
