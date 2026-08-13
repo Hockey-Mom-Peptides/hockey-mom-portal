@@ -280,9 +280,9 @@ if not st.session_state.verified_21:
     
     button_placeholder = st.empty()
     
-    # 2. Pause the script to let the 10-second video play
+    # 2. Pause the script to let the NEW 5-second video play
     if 'gate_played' not in st.session_state:
-        time.sleep(10.0) 
+        time.sleep(5.0)  # <--- Adjusted to 5 seconds for the 2x speed video
         st.session_state.gate_played = True
         st.rerun() 
     
