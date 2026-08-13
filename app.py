@@ -139,7 +139,7 @@ st.markdown("""
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    .block-container { padding-top: 2rem; padding-bottom: 4rem; max-width: 860px; }
+    .block-container { padding-top: 2rem; padding-bottom: 4rem; }
     
     @keyframes eliteFadeIn {
         0% { opacity: 0; transform: translateY(12px); }
