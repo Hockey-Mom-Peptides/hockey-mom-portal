@@ -148,6 +148,12 @@ st.markdown("""
     
     .animated-header { animation: eliteFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     h1, h2, h3, span, p { color: #0f172a; }
+
+    /* --- SCALE DOWN ALL IMAGES BY 25% & CENTER THEM --- */
+    [data-testid="stImage"] {
+        width: 75% !important;
+        margin: 0 auto !important; 
+    }
     
     .hero-banner {
         background: #ffffff; border: 2px solid #0f172a; padding: 1.25rem;
