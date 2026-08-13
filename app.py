@@ -151,7 +151,7 @@ st.markdown("""
 
     /* --- SCALE DOWN ALL IMAGES BY 25% & CENTER THEM --- */
     [data-testid="stImage"] {
-        width: 75% !important;
+        width: 50% !important;
         margin: 0 auto !important; 
     }
     
