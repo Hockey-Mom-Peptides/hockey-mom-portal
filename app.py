@@ -65,7 +65,7 @@ def send_itemized_receipt(to_email, order_id, summary_text, total, cust_name, ad
     msg['Subject'] = f"Receipt for Order {order_id} - Power Play Peptides"
     msg['From'] = SHOP_EMAIL
     msg['To'] = to_email
-    msg['Bcc'] = SHOP_EMAIL
+    msg['Bcc'] = SHOP_EMAIL  # Sends an exact copy to the shop's email
 
     html_content = f"""
     <html>
@@ -156,15 +156,57 @@ st.markdown("""
     }
     .hero-banner h4 { color: #0f172a !important; font-size: 1.2rem !important; font-weight: 800 !important; margin: 0 0 6px 0 !important; }
 
-    .stTextInput>div>div>input, .stSelectbox>div>div>div, .stNumberInput>div>div>input {
-        border-radius: 10px !important; border: 1px solid #cbd5e1 !important; background-color: #ffffff !important;
+    /* --- THE FIX FOR INVISIBLE TEXT ON INPUTS & DROPDOWNS --- */
+    .stTextInput>div>div>input, 
+    .stSelectbox>div>div>div, 
+    .stNumberInput>div>div>input,
+    .stTextArea>div>div>textarea {
+        border-radius: 10px !important; 
+        border: 1px solid #cbd5e1 !important; 
+        background-color: #ffffff !important;
+        color: #0f172a !important; /* Forces dark text */
     }
     
-    .stButton>button {
-        background-color: #0f172a; color: #ffffff; border-radius: 10px; border: none;
-        padding: 0.65rem 1.2rem; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15); transition: all 0.2s ease;
+    /* Fixes dropdown menu text (Selectboxes) */
+    div[data-baseweb="select"] span { color: #0f172a !important; }
+    div[data-baseweb="popover"] div { background-color: #ffffff !important; }
+    div[data-baseweb="popover"] li { color: #0f172a !important; }
+
+    /* Fixes the +/- quantity buttons */
+    .stNumberInput button {
+        color: #0f172a !important;
+        background-color: #f1f5f9 !important;
     }
-    .stButton>button:hover { background-color: #dc2626; transform: translateY(-2px); color: #ffffff; }
+    
+    /* --- MAIN BUTTONS --- */
+    .stButton>button, 
+    .stButton>button div, 
+    .stButton>button p, 
+    .stButton>button span {
+        color: #ffffff !important; 
+        font-weight: 600 !important;
+    }
+
+    .stButton>button {
+        background-color: #0f172a; 
+        border-radius: 10px; 
+        border: none;
+        padding: 0.65rem 1.2rem; 
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15); 
+        transition: all 0.2s ease;
+    }
+    
+    .stButton>button:hover { 
+        background-color: #dc2626; 
+        transform: translateY(-2px); 
+    }
+    
+    .stButton>button:hover, 
+    .stButton>button:hover div, 
+    .stButton>button:hover p, 
+    .stButton>button:hover span {
+        color: #ffffff !important; 
+    }
     
     .receipt-row { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 12px 0; font-size: 0.95rem; }
     .receipt-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.25rem; padding-top: 18px; color: #dc2626;}
