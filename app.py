@@ -267,9 +267,9 @@ st.markdown(f"""
 if not st.session_state.verified_21:
     st.markdown("<div class='age-gate-container'>", unsafe_allow_html=True)
     
-    # 1. Load the animated video
+    # 1. Load the animated video (Now muted so it auto-plays!)
     if os.path.exists("intro.mp4"): 
-        st.video("intro.mp4", autoplay=True)
+        st.video("intro.mp4", autoplay=True, muted=True)
     elif os.path.exists("animated_logo.gif"): 
         st.image("animated_logo.gif", use_container_width=True)
     elif os.path.exists("logo.png"): 
@@ -282,7 +282,7 @@ if not st.session_state.verified_21:
     
     # 2. Pause the script to let the 10-second video play
     if 'gate_played' not in st.session_state:
-        time.sleep(10.0) # <--- Set to 10 seconds to match the video length
+        time.sleep(10.0) 
         st.session_state.gate_played = True
         st.rerun() 
     
@@ -300,7 +300,6 @@ if not st.session_state.verified_21:
                 
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
-
 # --- 5. HEADER & NAVIGATION BAR ---
 st.markdown("<div class='animated-header'>", unsafe_allow_html=True)
 if os.path.exists("logo.png"): 
