@@ -234,7 +234,6 @@ with st.container(border=True):
 access_type = VALID_CODES.get(user_code, None)
 is_wholesale = (access_type == "wholesale")
 has_hidden_catalog = (access_type == "hidden_access")
-# Treating hidden_access or wholesale as VIP access level for the starter kit
 is_vip = is_wholesale or has_hidden_catalog
 
 if is_wholesale:
@@ -285,6 +284,11 @@ with col_add:
         st.warning("🔒 **VIP Exclusive Item:** You must enter a valid VIP/Special Access code above to unlock and configure the Ultimate Start Up Kit.")
     elif is_starter_kit and is_vip:
         st.markdown("#### 📦 Select Your Research Cycle Options")
+        
+        # --- VIDEO EMBED FOR START UP KIT ---
+        st.markdown("##### 🎥 Watch the Kit Overview Video")
+        st.video("https://youtube.com/shorts/4fqIK7gYt0o?si=PaFmvVoN1wCf0HSB")
+        
         kit_options = {
             "Trizepatide: 3-Month Starter Dose (2.5mg/wk)": 135.00,
             "Retatrutide: 3-Month Starter Dose (2mg/wk)": 195.00,
@@ -385,7 +389,6 @@ with col_cart:
                 if is_wholesale:
                     unit_price = get_wholesale_unit_price(code, total_qty)
                 else:
-                
                     unit_price = PRODUCTS[code]['retail_unit_price']
                 item_name = PRODUCTS[code]['name']
                 
