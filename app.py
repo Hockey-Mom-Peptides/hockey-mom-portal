@@ -137,8 +137,8 @@ st.set_page_config(page_title="Power Play Peptides", layout="wide", initial_side
 
 # Inject Background Image if it exists
 bg_css = ""
-if os.path.exists("background.jpeg"):
-    bg_base64 = get_base64_of_bin_file("background.jpeg")
+if os.path.exists("background.jpg"):
+    bg_base64 = get_base64_of_bin_file("background.jpg")
     bg_css = f"""
     .stApp {{
         background-image: url("data:image/jpeg;base64,{bg_base64}");
