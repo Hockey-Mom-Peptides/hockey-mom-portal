@@ -417,8 +417,8 @@ elif st.session_state.page == "product_detail":
                 kit_options = {
                     "Trizepatide: 3-Month Starter Dose (2.5mg/wk)": 135.00,
                     "Retatrutide: 3-Month Starter Dose (2mg/wk)": 195.00,
-                    "Vial: 8-Week Cycle": 220.00,
-                    "Vial: 12-Week Cycle": 285.00
+                    "KLOW: 8-Week Cycle": 220.00,
+                    "KLOW: 12-Week Cycle": 285.00
                 }
                 selected_cycle = st.selectbox("Choose package configuration:", options=list(kit_options.keys()))
                 cycle_price = kit_options[selected_cycle]
