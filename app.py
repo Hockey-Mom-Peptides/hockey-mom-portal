@@ -15,6 +15,7 @@ SHOP_EMAIL = "hockeymompeptides@gmail.com"
 EMAIL_PASSWORD = "vqbg juzj kqwj xphd" # Add your Gmail App Password here
 
 # --- 1. LOAD DATABASES FROM CSV ---
+@st.cache_data
 def load_catalog():
     products = {}
     if os.path.exists("pricing.csv"):
@@ -36,6 +37,7 @@ def load_catalog():
                 }
     return products
 
+@st.cache_data
 def load_partner_codes():
     codes = {}
     if os.path.exists("partners.csv"):
@@ -47,7 +49,6 @@ def load_partner_codes():
                 if code:
                     codes[code] = access_type
     return codes
-
 PRODUCTS = load_catalog()
 VALID_CODES = load_partner_codes()
 
