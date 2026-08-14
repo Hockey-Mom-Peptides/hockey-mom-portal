@@ -336,7 +336,14 @@ is_vip = False
 if not st.session_state.order_ready:
     with st.container(border=True):
         st.markdown("🔑 **Special Access Code**")
-        user_code = st.text_input("Code:", label_visibility="collapsed", placeholder="Enter code for VIP/wholesale access...")
+        
+        # Wrapping the input in a form stops the app from refreshing on every keystroke
+        with st.form("vip_code_form", clear_on_submit=False):
+            col_input, col_btn = st.columns([3, 1])
+            with col_input:
+                user_code = st.text_input("Code:", label_visibility="collapsed", placeholder="Enter code for VIP/wholesale access...")
+            with col_btn:
+                applied = st.form_submit_button("Apply", use_container_width=True)
         
         access_type = VALID_CODES.get(user_code, None)
         is_wholesale = (access_type == "wholesale")
