@@ -1,5 +1,5 @@
 Code,Name,Description,RetailPrice,Tier1Qty,Tier1Price,Tier2Qty,Tier2Price,Tier3Price,Image,Visibility
-PC,3ml Injector Vial Storage Case,Secure travel-ready storage for standard 3ml peptide vials.,15,4,8,14,7,6,pen vial storage.png,public
+PC,3ml Injector Vial Storage Case,Secure travel-ready storage for standard 3ml peptide vials.,15,4,8,14,7,6,https://github.com/Hockey-Mom-Peptides/hockey-mom-portal/blob/main/pen%20vial%20storage.png?raw=true,public
 NG,Syringe Guide System,Precision alignment tool for smooth consistent needle placement.,10,4,5,14,4,3,https://github.com/Hockey-Mom-Peptides/hockey-mom-portal/blob/main/guide.png?raw=true,public
 SC,Sharps Container,"Container that allows for safe removal, and storage of used sharps from injection pen.",15,15,15,15,15,15,sharps.png,public
 ND,Pen Needles qty(20),Replacment 1 times use needles for pen. Comes in a qty of 20 needles.,7,7,7,7,7,7,https://github.com/Hockey-Mom-Peptides/hockey-mom-portal/blob/main/pen%20needles.png?raw=true,public
