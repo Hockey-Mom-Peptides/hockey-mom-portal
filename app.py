@@ -8,16 +8,19 @@ import random
 import base64
 import time
 # --- REDIRECT OLD TRAFFIC TO NEW DOMAIN ---
-if st.secrets.get("REDIRECT_TO_NEW") in ["True", "true", True]:
-    st.markdown(
-        """
-        <meta http-equiv="refresh" content="0; url=https://www.powerplaypeptides.com">
-        <script>window.top.location.href="https://www.powerplaypeptides.com";</script>
-        """,
-        unsafe_allow_html=True
-    )
-    st.warning("🚀 **We've upgraded our servers!** Redirecting you to our new, lightning-fast site... If you are not redirected automatically in 3 seconds, [click here to enter the new store](https://www.powerplaypeptides.com).")
-    st.stop()
+try:
+    if st.secrets.get("REDIRECT_TO_NEW") in ["True", "true", True]:
+        st.markdown(
+            """
+            <meta http-equiv="refresh" content="0; url=https://www.powerplaypeptides.com">
+            <script>window.top.location.href="https://www.powerplaypeptides.com";</script>
+            """,
+            unsafe_allow_html=True
+        )
+        st.warning("🚀 **We've upgraded our servers!** Redirecting you to our new, lightning-fast site... If you are not redirected automatically in 3 seconds, [click here to enter the new store](https://www.powerplaypeptides.com).")
+        st.stop()
+except Exception:
+    pass # If the secrets file doesn't exist (like on Render), just ignore and load normally
 
 # --- CONFIGURATION ---
 CASH_TAG = "$Hockeymomma3"  
