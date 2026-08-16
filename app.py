@@ -458,7 +458,7 @@ elif st.session_state.page == "product_detail":
                 st.markdown("#### 📦 Select Your Research Cycle Options")
                 st.video("https://www.youtube.com/watch?v=4fqIK7gYt0o")
                 
-                kit_options = {
+               kit_options = {
                     "Trizepatide: 3-Month Starter Dose (2.5mg/wk)": 135.00,
                     "Retatrutide: 3-Month Starter Dose (2mg/wk)": 195.00,
                     "KLOW: 8-Week Cycle": 220.00,
@@ -466,6 +466,12 @@ elif st.session_state.page == "product_detail":
                 }
                 selected_cycle = st.selectbox("Choose package configuration:", options=list(kit_options.keys()))
                 cycle_price = kit_options[selected_cycle]
+                
+                # --- NEW MARKUP LOGIC ---
+                # Apply 20% markup to the kit cycle if SHM2026 is used
+                if user_code == "SHM2026" and product_details['name'] in MARKUP_ITEMS:
+                    cycle_price = cycle_price * 1.20
+                # ------------------------
                 
                 add_qty = st.number_input("Quantity", min_value=1, value=1, step=1, key="kit_qty")
                 preview_subtotal = cycle_price * add_qty
