@@ -372,11 +372,15 @@ if not st.session_state.order_ready:
                 applied = st.form_submit_button("Apply", use_container_width=True)
         
         access_type = VALID_CODES.get(user_code, None)
+        
+        # Give SHM2026 access to both wholesale pricing AND the hidden catalog
         is_wholesale = (access_type == "wholesale") or (user_code == "SHM2026")
-        has_hidden_catalog = (access_type == "hidden_access")
+        has_hidden_catalog = (access_type == "hidden_access") or (user_code == "SHM2026")
         is_vip = is_wholesale or has_hidden_catalog
 
-        if is_wholesale:
+        if user_code == "SHM2026":
+            st.success("✓ VIP Access Unlocked (Special Pricing Applied)")
+        elif is_wholesale:
             st.success("✓ Wholesale Pricing Unlocked")
         elif has_hidden_catalog:
             st.success("✓ VIP Access Unlocked (Starter Kit & Exclusive Products Added)")
