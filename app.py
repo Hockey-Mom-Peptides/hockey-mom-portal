@@ -458,7 +458,7 @@ elif st.session_state.page == "product_detail":
                 st.markdown("#### 📦 Select Your Research Cycle Options")
                 st.video("https://www.youtube.com/watch?v=4fqIK7gYt0o")
                 
-               kit_options = {
+                kit_options = {
                     "Trizepatide: 3-Month Starter Dose (2.5mg/wk)": 135.00,
                     "Retatrutide: 3-Month Starter Dose (2mg/wk)": 195.00,
                     "KLOW: 8-Week Cycle": 220.00,
