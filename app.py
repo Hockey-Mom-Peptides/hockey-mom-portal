@@ -563,10 +563,17 @@ elif st.session_state.page == "cart":
                 cust_phone = st.text_input("Phone Number")
                 cust_address = st.text_area("Shipping Address (Street, City, State, Zip)")
                 
+                st.write("") # Adds a little breathing room
+                # --- NEW LEGAL CONFIRMATION CHECKBOX ---
+                terms_agreed = st.checkbox("I confirm that I am over 21 years of age and acknowledge that these products are intended strictly for research purposes only.")
+                # ---------------------------------------
+                
                 submit_form = st.form_submit_button("Generate Order & Payment Info", type="primary", use_container_width=True)
                 
                 if submit_form:
-                    if not cust_name or not cust_email or not cust_address:
+                    if not terms_agreed:
+                        st.error("⚠️ You must confirm your age and the research intent of the products to proceed with your order.")
+                    elif not cust_name or not cust_email or not cust_address:
                         st.error("Please fill in your Name, Email, and Shipping Address.")
                     else:
                         order_id = generate_order_id()
