@@ -7,6 +7,7 @@ from email.message import EmailMessage
 import random
 import base64
 import time
+
 # --- REDIRECT OLD TRAFFIC TO NEW DOMAIN ---
 try:
     if st.secrets.get("REDIRECT_TO_NEW") in ["True", "true", True]:
@@ -81,8 +82,8 @@ def get_wholesale_unit_price(product_code, qty, current_code=""):
     elif qty <= p["t2_qty"]: price = p["t2_price"]
     else: price = p["t3_price"]
     
-    # Apply 20% markup for SHM2026 on specific items
-    if current_code == "SHM2026" and p["name"] in MARKUP_ITEMS:
+    # Apply 20% markup for VIP/SHM codes on specific items
+    if current_code.strip().upper() in ["SHM2026", "SHM", "VIP"] and p["name"] in MARKUP_ITEMS:
         price = price * 1.20
         
     return price
@@ -122,6 +123,37 @@ def send_itemized_receipt(to_email, order_id, summary_text, total, cust_name, ad
         return True
     except Exception as e:
         print(f"Email Error: {e}")
+        return False
+
+def send_contact_email(user_name, user_email, user_message):
+    msg = EmailMessage()
+    msg['Subject'] = f"New Portal Inquiry from {user_name}"
+    msg['From'] = SHOP_EMAIL
+    msg['To'] = SHOP_EMAIL # Routing directly to the shop inbox
+    msg['Reply-To'] = user_email # Allows direct reply to the customer
+
+    html_content = f"""
+    <html>
+      <body>
+        <h3>New Contact Form Submission</h3>
+        <p><strong>Name:</strong> {user_name}</p>
+        <p><strong>Email:</strong> {user_email}</p>
+        <hr>
+        <p><strong>Message:</strong></p>
+        <p>{user_message.replace(chr(10), '<br>')}</p>
+      </body>
+    </html>
+    """
+    msg.set_content(f"Name: {user_name}\nEmail: {user_email}\nMessage:\n{user_message}")
+    msg.add_alternative(html_content, subtype='html')
+
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(SHOP_EMAIL, EMAIL_PASSWORD)
+            smtp.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"Contact Email Error: {e}")
         return False
 
 @st.cache_data
@@ -295,7 +327,6 @@ st.markdown(f"""
 if not st.session_state.verified_21:
     st.markdown("<div class='age-gate-container'>", unsafe_allow_html=True)
     
-    # 1. Load the animated video (Now muted so it auto-plays!)
     if os.path.exists("intro.mp4"): 
         st.video("intro.mp4", autoplay=True, muted=True)
     elif os.path.exists("animated_logo.gif"): 
@@ -308,13 +339,11 @@ if not st.session_state.verified_21:
     
     button_placeholder = st.empty()
     
-    # 2. Pause the script to let the NEW 5-second video play
     if 'gate_played' not in st.session_state:
-        time.sleep(5.0)  # <--- Adjusted to 5 seconds for the 2x speed video
+        time.sleep(5.0) 
         st.session_state.gate_played = True
         st.rerun() 
     
-    # 3. Draw the buttons after the video finishes
     with button_placeholder.container():
         col_yes, col_no = st.columns(2)
         with col_yes:
@@ -355,6 +384,42 @@ with nav_col2:
 
 st.markdown("---")
 
+# ==========================================
+# MAIN SCREEN: INFO & CONTACT (Only visible on catalog)
+# ==========================================
+if st.session_state.page == "catalog" and not st.session_state.order_ready:
+    col_info, col_contact = st.columns([1, 1])
+    
+    with col_info:
+        st.subheader("ℹ️ Information")
+        with st.expander("Click here to read more about our products and policies"):
+            st.write("""
+            **General Information:**
+            * Welcome to Power Play Peptides.
+            * All products are intended strictly for laboratory and research use only.
+            * Not for human consumption, injection, or veterinary use.
+            * **Shipping:** Standard processing applies. Contact us for expedited options.
+            """)
+            
+    with col_contact:
+        st.subheader("✉️ Contact Us")
+        with st.form("direct_contact_form", clear_on_submit=True):
+            c_name = st.text_input("Name")
+            c_email = st.text_input("Email Address")
+            c_msg = st.text_area("How can we help you?")
+            c_submit = st.form_submit_button("Send Message", use_container_width=True)
+            
+            if c_submit:
+                if c_name and c_email and c_msg:
+                    success = send_contact_email(c_name, c_email, c_msg)
+                    if success:
+                        st.success(f"Thanks {c_name}, your message has been sent!")
+                    else:
+                        st.error("Error sending message. Please try again later.")
+                else:
+                    st.error("Please fill out all fields.")
+    st.markdown("---")
+
 # --- GLOBAL ACCESS LOGIC ---
 access_type = None
 is_wholesale = False
@@ -366,7 +431,6 @@ if not st.session_state.order_ready:
     with st.container(border=True):
         st.markdown("🔑 **Special Access Code**")
         
-        # Wrapping the input in a form stops the app from refreshing on every keystroke
         with st.form("vip_code_form", clear_on_submit=False):
             col_input, col_btn = st.columns([3, 1])
             with col_input:
@@ -374,15 +438,16 @@ if not st.session_state.order_ready:
             with col_btn:
                 applied = st.form_submit_button("Apply", use_container_width=True)
         
+        uc_upper = user_code.strip().upper()
         access_type = VALID_CODES.get(user_code, None)
         
-        # Give SHM2026 access to both wholesale pricing AND the hidden catalog
-        is_wholesale = (access_type == "wholesale") or (user_code == "SHM2026")
-        has_hidden_catalog = (access_type == "hidden_access") or (user_code == "SHM2026")
+        # Give VIP/SHM/SHM2026 access to both wholesale pricing AND the hidden catalog
+        is_wholesale = (access_type == "wholesale") or (uc_upper in ["SHM2026", "SHM", "VIP"])
+        has_hidden_catalog = (access_type == "hidden_access") or (uc_upper in ["SHM2026", "SHM", "VIP"])
         is_vip = is_wholesale or has_hidden_catalog
 
-        if user_code == "SHM2026":
-            st.success("✓ VIP Access Unlocked (Special Pricing Applied)")
+        if uc_upper in ["SHM2026", "SHM", "VIP"]:
+            st.success(f"✓ VIP Access Unlocked (Special Pricing Applied for code '{uc_upper}')")
         elif is_wholesale:
             st.success("✓ Wholesale Pricing Unlocked")
         elif has_hidden_catalog:
@@ -418,7 +483,7 @@ if st.session_state.page == "catalog":
                 
                 if is_wholesale:
                     display_price = data['t3_price']
-                    if user_code == "SHM2026" and data['name'] in MARKUP_ITEMS:
+                    if user_code.strip().upper() in ["SHM2026", "SHM", "VIP"] and data['name'] in MARKUP_ITEMS:
                         display_price = display_price * 1.20
                     st.markdown(f"<span style='color:#dc2626; font-weight:bold;'>Starting at: ${display_price:.2f}</span>", unsafe_allow_html=True)
                 else:
@@ -467,11 +532,8 @@ elif st.session_state.page == "product_detail":
                 selected_cycle = st.selectbox("Choose package configuration:", options=list(kit_options.keys()))
                 cycle_price = kit_options[selected_cycle]
                 
-                # --- NEW MARKUP LOGIC ---
-                # Apply 20% markup to the kit cycle if SHM2026 is used
-                if user_code == "SHM2026" and product_details['name'] in MARKUP_ITEMS:
+                if user_code.strip().upper() in ["SHM2026", "SHM", "VIP"] and product_details['name'] in MARKUP_ITEMS:
                     cycle_price = cycle_price * 1.20
-                # ------------------------
                 
                 add_qty = st.number_input("Quantity", min_value=1, value=1, step=1, key="kit_qty")
                 preview_subtotal = cycle_price * add_qty
@@ -563,10 +625,8 @@ elif st.session_state.page == "cart":
                 cust_phone = st.text_input("Phone Number")
                 cust_address = st.text_area("Shipping Address (Street, City, State, Zip)")
                 
-                st.write("") # Adds a little breathing room
-                # --- NEW LEGAL CONFIRMATION CHECKBOX ---
+                st.write("") 
                 terms_agreed = st.checkbox("I confirm that I am over 21 years of age and acknowledge that these products are intended strictly for research purposes only.")
-                # ---------------------------------------
                 
                 submit_form = st.form_submit_button("Generate Order & Payment Info", type="primary", use_container_width=True)
                 
