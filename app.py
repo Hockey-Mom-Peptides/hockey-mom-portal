@@ -372,10 +372,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# Navigation Controls
+# Top Bar (Back Button / Cart)
 nav_col1, nav_col2 = st.columns([3, 1])
 with nav_col1:
-    if st.session_state.page != "catalog" and not st.session_state.order_ready:
+    # Only show the Back button if deep into a product page or cart
+    if st.session_state.page in ["product_detail", "cart"] and not st.session_state.order_ready:
         st.button("⬅️ Back to Catalog", on_click=nav_to, args=("catalog",))
 with nav_col2:
     if not st.session_state.order_ready:
@@ -383,42 +384,6 @@ with nav_col2:
         st.button(f"🛒 Cart ({total_items})", use_container_width=True, on_click=nav_to, args=("cart",))
 
 st.markdown("---")
-
-# ==========================================
-# MAIN SCREEN: INFO & CONTACT (Only visible on catalog)
-# ==========================================
-if st.session_state.page == "catalog" and not st.session_state.order_ready:
-    col_info, col_contact = st.columns([1, 1])
-    
-    with col_info:
-        st.subheader("ℹ️ Information")
-        with st.expander("Click here to read more about our products and policies"):
-            st.write("""
-            **General Information:**
-            * Welcome to Power Play Peptides.
-            * All products are intended strictly for laboratory and research use only.
-            * Not for human consumption, injection, or veterinary use.
-            * **Shipping:** Standard processing applies. Contact us for expedited options.
-            """)
-            
-    with col_contact:
-        st.subheader("✉️ Contact Us")
-        with st.form("direct_contact_form", clear_on_submit=True):
-            c_name = st.text_input("Name")
-            c_email = st.text_input("Email Address")
-            c_msg = st.text_area("How can we help you?")
-            c_submit = st.form_submit_button("Send Message", use_container_width=True)
-            
-            if c_submit:
-                if c_name and c_email and c_msg:
-                    success = send_contact_email(c_name, c_email, c_msg)
-                    if success:
-                        st.success(f"Thanks {c_name}, your message has been sent!")
-                    else:
-                        st.error("Error sending message. Please try again later.")
-                else:
-                    st.error("Please fill out all fields.")
-    st.markdown("---")
 
 # --- GLOBAL ACCESS LOGIC ---
 access_type = None
@@ -453,6 +418,23 @@ if not st.session_state.order_ready:
         elif has_hidden_catalog:
             st.success("✓ VIP Access Unlocked (Starter Kit & Exclusive Products Added)")
 
+# If a user is on a hidden tab but removes their VIP code, kick them back to the catalog
+if not is_vip and st.session_state.page in ["info", "contact"]:
+    st.session_state.page = "catalog"
+    st.rerun()
+
+# ==========================================
+# SUB-NAVIGATION MENU (Only visible if VIP code is entered)
+# ==========================================
+if not st.session_state.order_ready and is_vip:
+    menu_col1, menu_col2, menu_col3 = st.columns(3)
+    with menu_col1:
+        st.button("🛍️ Shop Catalog", use_container_width=True, on_click=nav_to, args=("catalog",))
+    with menu_col2:
+        st.button("ℹ️ Information", use_container_width=True, on_click=nav_to, args=("info",))
+    with menu_col3:
+        st.button("✉️ Contact Us", use_container_width=True, on_click=nav_to, args=("contact",))
+
 if not PRODUCTS:
     st.error("⚠️ pricing.csv file not found! Please create it in the same folder to load your products.")
     st.stop()
@@ -463,7 +445,7 @@ available_products = {
 }
 
 # ==========================================
-# VIEW 1: CATALOG GRID
+# VIEW: CATALOG GRID
 # ==========================================
 if st.session_state.page == "catalog":
     st.markdown("### Browse Products")
@@ -493,7 +475,44 @@ if st.session_state.page == "catalog":
                 st.button("View Details", key=f"view_{code}", use_container_width=True, on_click=nav_to, args=("product_detail", code))
 
 # ==========================================
-# VIEW 2: PRODUCT DETAIL PAGE
+# VIEW: INFORMATION PAGE
+# ==========================================
+elif st.session_state.page == "info":
+    with st.container(border=True):
+        st.markdown("### ℹ️ Information")
+        st.write("""
+        **General Information:**
+        * Welcome to Power Play Peptides.
+        * All products are intended strictly for laboratory and research use only.
+        * Not for human consumption, injection, or veterinary use.
+        * **Shipping:** Standard processing applies. Contact us for expedited options.
+        """)
+
+# ==========================================
+# VIEW: CONTACT PAGE
+# ==========================================
+elif st.session_state.page == "contact":
+    with st.container(border=True):
+        st.markdown("### ✉️ Contact Us")
+        st.write("Have questions before getting started? Send us a message below.")
+        with st.form("direct_contact_form", clear_on_submit=True):
+            c_name = st.text_input("Name")
+            c_email = st.text_input("Email Address")
+            c_msg = st.text_area("How can we help you?")
+            c_submit = st.form_submit_button("Send Message", use_container_width=True)
+            
+            if c_submit:
+                if c_name and c_email and c_msg:
+                    success = send_contact_email(c_name, c_email, c_msg)
+                    if success:
+                        st.success(f"Thanks {c_name}, your message has been sent!")
+                    else:
+                        st.error("Error sending message. Please try again later.")
+                else:
+                    st.error("Please fill out all fields.")
+
+# ==========================================
+# VIEW: PRODUCT DETAIL PAGE
 # ==========================================
 elif st.session_state.page == "product_detail":
     code = st.session_state.selected_product
@@ -583,7 +602,7 @@ elif st.session_state.page == "product_detail":
                     st.success("Added to Cart!")
 
 # ==========================================
-# VIEW 3: SHOPPING CART & CHECKOUT
+# VIEW: SHOPPING CART & CHECKOUT
 # ==========================================
 elif st.session_state.page == "cart":
     st.markdown("### Your Shopping Cart")
