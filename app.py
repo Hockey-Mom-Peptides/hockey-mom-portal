@@ -527,9 +527,9 @@ elif st.session_state.page == "info":
 elif st.session_state.page == "flyer_view":
     # Dictionary linking the button clicks to your exact file names
     flyer_map = {
-        "triz": {"file": "trizepatide.JPG", "title": "Tirzepatide Research Profile"},
-        "reta": {"file": "retatrutide.JPG", "title": "Retatrutide Research Profile"},
-        "klow": {"file": "klow.JPG", "title": "KLOW Peptide Stack Profile"}
+        "triz": {"file": "trizepatide.jpg", "title": "Tirzepatide Research Profile"},
+        "reta": {"file": "retatrutide.jpg", "title": "Retatrutide Research Profile"},
+        "klow": {"file": "klow.jpg", "title": "KLOW Peptide Stack Profile"}
     }
     
     current_info = flyer_map.get(st.session_state.current_flyer)
