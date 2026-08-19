@@ -175,6 +175,24 @@ def update_cart_qty(item_key):
     else:
         st.session_state.cart[item_key]['qty'] = new_qty
 
+def view_flyer(flyer_name):
+    st.session_state.page = "flyer_view"
+    st.session_state.current_flyer = flyer_name
+
+def go_to_starter_kit():
+    kit_code = None
+    # Automatically hunt for the Starter Kit code based on its name
+    for code, data in available_products.items():
+        if "START UP KIT" in data['name'].upper():
+            kit_code = code
+            break
+            
+    if kit_code:
+        st.session_state.page = "product_detail"
+        st.session_state.selected_product = kit_code
+    else:
+        st.error("Starter Kit not found in catalog.")
+
 # --- INITIALIZE SESSION STATE MEMORY ---
 if 'page' not in st.session_state:
     st.session_state.page = "catalog"
@@ -190,6 +208,8 @@ if 'email_success' not in st.session_state:
     st.session_state.email_success = True
 if 'verified_21' not in st.session_state:
     st.session_state.verified_21 = False
+if 'current_flyer' not in st.session_state:
+    st.session_state.current_flyer = None
 
 # --- 3. PAGE CONFIGURATION & ELITE UI CSS ---
 st.set_page_config(page_title="Power Play Peptides", layout="wide", initial_sidebar_state="collapsed")
@@ -375,8 +395,8 @@ st.markdown("</div>", unsafe_allow_html=True)
 # Top Bar (Back Button / Cart)
 nav_col1, nav_col2 = st.columns([3, 1])
 with nav_col1:
-    # Only show the Back button if deep into a product page or cart
-    if st.session_state.page in ["product_detail", "cart"] and not st.session_state.order_ready:
+    # Only show the Back button if deep into a product page, cart, or flyer view
+    if st.session_state.page in ["product_detail", "cart", "flyer_view"] and not st.session_state.order_ready:
         st.button("⬅️ Back to Catalog", on_click=nav_to, args=("catalog",))
 with nav_col2:
     if not st.session_state.order_ready:
@@ -419,7 +439,7 @@ if not st.session_state.order_ready:
             st.success("✓ VIP Access Unlocked (Starter Kit & Exclusive Products Added)")
 
 # If a user is on a hidden tab but removes their VIP code, kick them back to the catalog
-if not is_vip and st.session_state.page in ["info", "contact"]:
+if not is_vip and st.session_state.page in ["info", "contact", "flyer_view"]:
     st.session_state.page = "catalog"
     st.rerun()
 
@@ -487,6 +507,54 @@ elif st.session_state.page == "info":
         * Not for human consumption, injection, or veterinary use.
         * **Shipping:** Standard processing applies. Contact us for expedited options.
         """)
+        
+        st.divider()
+        st.markdown("#### Research Profiles")
+        st.write("Click below to view detailed research profiles for our peptide stacks.")
+        
+        # Draw the 3 navigation buttons side-by-side
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.button("Tirzepatide Profile", use_container_width=True, on_click=view_flyer, args=("triz",))
+        with col2:
+            st.button("Retatrutide Profile", use_container_width=True, on_click=view_flyer, args=("reta",))
+        with col3:
+            st.button("KLOW Stack Profile", use_container_width=True, on_click=view_flyer, args=("klow",))
+
+# ==========================================
+# VIEW: FLYER DISPLAY & ADD TO CART
+# ==========================================
+elif st.session_state.page == "flyer_view":
+    # Dictionary linking the button clicks to your exact file names
+    flyer_map = {
+        "triz": {"file": "trizepatide.JPG", "title": "Tirzepatide Research Profile"},
+        "reta": {"file": "retatrutide.JPG", "title": "Retatrutide Research Profile"},
+        "klow": {"file": "klow.JPG", "title": "KLOW Peptide Stack Profile"}
+    }
+    
+    current_info = flyer_map.get(st.session_state.current_flyer)
+    
+    if current_info:
+        st.markdown(f"### {current_info['title']}")
+        
+        # Display the image if it exists in the folder
+        if os.path.exists(current_info['file']):
+            st.image(current_info['file'], use_container_width=True)
+        else:
+            st.warning(f"Image '{current_info['file']}' not found. Please ensure it is uploaded.")
+        
+        st.write("")
+        
+        # Bottom Navigation Buttons
+        col_btn1, col_btn2 = st.columns(2)
+        with col_btn1:
+            st.button("⬅️ Back to Information", use_container_width=True, on_click=nav_to, args=("info",))
+        with col_btn2:
+            # This triggers the function to find the Starter Kit and switch to its page
+            st.button("🛒 Add to Cart (Configure Starter Kit)", use_container_width=True, type="primary", on_click=go_to_starter_kit)
+    else:
+        st.error("Flyer selection error.")
+        st.button("⬅️ Back to Information", on_click=nav_to, args=("info",))
 
 # ==========================================
 # VIEW: CONTACT PAGE
